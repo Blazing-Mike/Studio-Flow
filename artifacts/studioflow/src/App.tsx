@@ -443,6 +443,11 @@ function date(value: string) {
     day: "numeric",
   }).format(new Date(value));
 }
+/** Split an ISO date (or "Mon D" label) into { day, month } for the date-block. */
+function dateParts(value: string) {
+  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00` : value);
+  return { day: d.getDate(), month: d.toLocaleString("en-US", { month: "short" }) };
+}
 function cx(...names: (string | false | undefined)[]) {
   return names.filter(Boolean).join(" ");
 }
@@ -746,7 +751,9 @@ function DashboardPage() {
             <CalendarDays size={18} className="panel-icon" />
           </div>
           <div className="upcoming-list">
-            {dashboard.upcoming.map((item) => (
+            {dashboard.upcoming.map((item) => {
+              const parts = dateParts(item.date);
+              return (
               <Link
                 href={`/projects/${item.projectId}`}
                 key={item.projectId}
@@ -754,8 +761,8 @@ function DashboardPage() {
                 className="upcoming-row"
               >
                 <div className="date-block">
-                  <strong>{item.date.split(" ")[1]}</strong>
-                  <small>{item.date.split(" ")[0]}</small>
+                  <strong>{parts.day}</strong>
+                  <small>{parts.month}</small>
                 </div>
                 <div className="upcoming-copy">
                   <strong>{item.label}</strong>
@@ -765,7 +772,8 @@ function DashboardPage() {
                   {item.daysLeft}d
                 </span>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </section>
       </div>

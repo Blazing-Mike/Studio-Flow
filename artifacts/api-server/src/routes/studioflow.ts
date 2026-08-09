@@ -46,14 +46,13 @@ function dashboard() {
     (item) => item.status === "In progress",
   );
 
-  const chart = [
-    { month: "Mar", value: 4200 },
-    { month: "Apr", value: 6100 },
-    { month: "May", value: 5400 },
-    { month: "Jun", value: 7600 },
-    { month: "Jul", value: 6800 },
-    { month: "Aug", value: revenue },
-  ];
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const chartHistory = [4200, 6100, 5400, 7600, 6800];
+  const nowMonth = new Date().getMonth();
+  const chart = Array.from({ length: 6 }, (_, i) => ({
+    month: MONTHS[(nowMonth - 5 + i + 12) % 12],
+    value: i === 5 ? revenue : chartHistory[i],
+  }));
   const previous = chart[chart.length - 2]?.value ?? 0;
   const revenueChange = previous
     ? Math.round(((revenue - previous) / previous) * 100)

@@ -105,6 +105,12 @@ const project = (
   packages: values.packages ?? structuredClone(sharedPackages),
 });
 
+/** ISO date (YYYY-MM-DD) `n` days from today — keeps demo seed data looking current. */
+const daysFromNow = (n: number) => {
+  const d = new Date(Date.now() + n * 86_400_000);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
 export const projects: StudioProject[] = [
   project({
     id: "northstar",
@@ -114,7 +120,7 @@ export const projects: StudioProject[] = [
     type: "Brand + Web",
     status: "In progress",
     budget: 4800,
-    deadline: "2024-08-28",
+    deadline: daysFromNow(19),
     progress: 68,
     accent: "#E8A86B",
     initials: "NC",
@@ -133,25 +139,25 @@ export const projects: StudioProject[] = [
       {
         id: "n1",
         name: "Discovery & direction",
-        date: "2024-07-12",
+        date: daysFromNow(-32),
         status: "complete",
       },
       {
         id: "n2",
         name: "Identity system",
-        date: "2024-07-26",
+        date: daysFromNow(-18),
         status: "complete",
       },
       {
         id: "n3",
         name: "Website design",
-        date: "2024-08-16",
+        date: daysFromNow(3),
         status: "current",
       },
       {
         id: "n4",
         name: "Launch & handoff",
-        date: "2024-08-28",
+        date: daysFromNow(19),
         status: "upcoming",
       },
     ],
@@ -161,7 +167,7 @@ export const projects: StudioProject[] = [
         title: "Finalize homepage art direction",
         phase: "Website design",
         status: "In Progress",
-        dueDate: "2024-08-09",
+        dueDate: daysFromNow(-7),
         assignee: "You",
       },
       {
@@ -169,7 +175,7 @@ export const projects: StudioProject[] = [
         title: "Review subscription flow",
         phase: "Website design",
         status: "Review",
-        dueDate: "2024-08-12",
+        dueDate: daysFromNow(-4),
         assignee: "Maya",
       },
       {
@@ -177,7 +183,7 @@ export const projects: StudioProject[] = [
         title: "Prepare launch checklist",
         phase: "Launch & handoff",
         status: "To Do",
-        dueDate: "2024-08-23",
+        dueDate: daysFromNow(11),
         assignee: "You",
       },
       {
@@ -185,7 +191,7 @@ export const projects: StudioProject[] = [
         title: "Approve identity direction",
         phase: "Identity system",
         status: "Done",
-        dueDate: "2024-07-25",
+        dueDate: daysFromNow(-21),
         assignee: "Lena",
       },
     ],
@@ -194,7 +200,7 @@ export const projects: StudioProject[] = [
         id: "ni1",
         number: "INV-1048",
         amount: 2400,
-        dueDate: "2024-07-19",
+        dueDate: daysFromNow(-28),
         status: "Paid",
         description: "50% project deposit",
       },
@@ -202,7 +208,7 @@ export const projects: StudioProject[] = [
         id: "ni2",
         number: "INV-1062",
         amount: 2400,
-        dueDate: "2024-08-28",
+        dueDate: daysFromNow(19),
         status: "Outstanding",
         description: "Final project balance",
       },
@@ -239,7 +245,7 @@ export const projects: StudioProject[] = [
     type: "Strategy",
     status: "Proposal sent",
     budget: 3600,
-    deadline: "2024-09-12",
+    deadline: daysFromNow(34),
     progress: 18,
     accent: "#A0B7A4",
     initials: "MH",
@@ -258,19 +264,19 @@ export const projects: StudioProject[] = [
       {
         id: "m1",
         name: "Proposal review",
-        date: "2024-08-14",
+        date: daysFromNow(5),
         status: "current",
       },
       {
         id: "m2",
         name: "Research sprint",
-        date: "2024-08-23",
+        date: daysFromNow(14),
         status: "upcoming",
       },
       {
         id: "m3",
         name: "Strategy readout",
-        date: "2024-09-12",
+        date: daysFromNow(34),
         status: "upcoming",
       },
     ],
@@ -280,7 +286,7 @@ export const projects: StudioProject[] = [
         title: "Follow up on proposal",
         phase: "Proposal",
         status: "To Do",
-        dueDate: "2024-08-10",
+        dueDate: daysFromNow(1),
         assignee: "You",
       },
       {
@@ -288,7 +294,7 @@ export const projects: StudioProject[] = [
         title: "Prepare research plan",
         phase: "Research sprint",
         status: "To Do",
-        dueDate: "2024-08-19",
+        dueDate: daysFromNow(10),
         assignee: "You",
       },
     ],
@@ -297,7 +303,7 @@ export const projects: StudioProject[] = [
         id: "mi1",
         number: "INV-1071",
         amount: 1800,
-        dueDate: "2024-08-14",
+        dueDate: daysFromNow(5),
         status: "Outstanding",
         description: "Project deposit",
       },
@@ -327,7 +333,7 @@ export const projects: StudioProject[] = [
     type: "Campaign",
     status: "In progress",
     budget: 2400,
-    deadline: "2024-08-20",
+    deadline: daysFromNow(11),
     progress: 42,
     accent: "#C9B6E4",
     initials: "SS",
@@ -346,16 +352,16 @@ export const projects: StudioProject[] = [
       {
         id: "s1",
         name: "Creative direction",
-        date: "2024-08-02",
+        date: daysFromNow(-7),
         status: "complete",
       },
       {
         id: "s2",
         name: "Campaign production",
-        date: "2024-08-14",
+        date: daysFromNow(5),
         status: "current",
       },
-      { id: "s3", name: "Launch", date: "2024-08-20", status: "upcoming" },
+      { id: "s3", name: "Launch", date: daysFromNow(11), status: "upcoming" },
     ],
     tasks: [
       {
@@ -363,7 +369,7 @@ export const projects: StudioProject[] = [
         title: "Select final campaign frames",
         phase: "Production",
         status: "In Progress",
-        dueDate: "2024-08-09",
+        dueDate: daysFromNow(-7),
         assignee: "Maya",
       },
       {
@@ -371,7 +377,7 @@ export const projects: StudioProject[] = [
         title: "Export social toolkit",
         phase: "Production",
         status: "To Do",
-        dueDate: "2024-08-13",
+        dueDate: daysFromNow(-3),
         assignee: "You",
       },
       {
@@ -379,7 +385,7 @@ export const projects: StudioProject[] = [
         title: "Review creative direction",
         phase: "Direction",
         status: "Done",
-        dueDate: "2024-08-01",
+        dueDate: daysFromNow(-12),
         assignee: "Nora",
       },
     ],
@@ -388,7 +394,7 @@ export const projects: StudioProject[] = [
         id: "si1",
         number: "INV-1056",
         amount: 1200,
-        dueDate: "2024-07-31",
+        dueDate: daysFromNow(-8),
         status: "Paid",
         description: "Project deposit",
       },
@@ -396,7 +402,7 @@ export const projects: StudioProject[] = [
         id: "si2",
         number: "INV-1067",
         amount: 1200,
-        dueDate: "2024-08-20",
+        dueDate: daysFromNow(11),
         status: "Outstanding",
         description: "Final project balance",
       },
