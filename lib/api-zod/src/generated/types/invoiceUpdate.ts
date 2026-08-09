@@ -8,4 +8,8 @@
 
 export interface InvoiceUpdate {
   status?: string;
+  description?: string;
+  amount?: number;
+  dueDate?: string;
+  number?: string;
 }

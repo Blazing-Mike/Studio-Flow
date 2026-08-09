@@ -1,15 +1,18 @@
-# [Project name]
+# StudioFlow
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+StudioFlow is an AI-assisted client workspace for independent creatives: turn a brief into a proposal, plan, invoices, and a shareable client portal.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm install` — install workspace dependencies
+- `pnpm --filter @workspace/api-server run dev` — run the API server on port `5000`
+- `pnpm --filter @workspace/studioflow run dev` — run the Vite client on port `5173`
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+
+Open `http://localhost:5173` after starting both development processes. The Vite dev server proxies `/api` requests to `http://localhost:5000`. `PORT`, `BASE_PATH`, and `API_URL` are optional local overrides.
 
 ## Stack
 
@@ -22,23 +25,33 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/studioflow/src/App.tsx` — React UI, routes, and page-level interactions
+- `artifacts/studioflow/src/index.css` — StudioFlow visual system
+- `artifacts/api-server/src/routes/studioflow.ts` — REST handlers
+- `artifacts/api-server/src/lib/studioflow-data.ts` — seeded demo data and local mock plan generator
+- `lib/api-spec/openapi.yaml` — API contract; generated client and schemas live in `lib/api-client-react` and `lib/api-zod`
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The API currently stores data in memory so the template is usable with no service configuration; restarting the API resets changes.
+- The client has sample-data fallbacks so its layouts remain useful while the API is unavailable.
+- API types are generated from the OpenAPI contract. Update the contract and run codegen before changing generated API files.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Dashboard and project list with search, filtering, archiving, and revenue/status summaries.
+- Brief-to-project flow that creates a mock proposal, package options, milestones, tasks, invoices, and portal link.
+- Client portal actions to select a package, approve, or request proposal changes.
+- Settings stored in browser local storage.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Continue development locally from the existing Replit implementation.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The server process must be running for mutations to persist during a browser session.
+- The previous Replit configuration required `PORT` and `BASE_PATH`; both now have local defaults.
 
 ## Pointers
 

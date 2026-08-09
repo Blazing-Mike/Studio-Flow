@@ -6,10 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface TaskUpdate {
-  status?: string;
-  title?: string;
-  phase?: string;
-  dueDate?: string;
-  assignee?: string;
+export interface InvoiceInput {
+  description: string;
+  amount: number;
+  dueDate: string;
+  status: string;
+  number?: string;
 }

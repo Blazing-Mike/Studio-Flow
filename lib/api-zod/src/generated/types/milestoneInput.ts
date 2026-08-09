@@ -6,10 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface TaskUpdate {
-  status?: string;
-  title?: string;
-  phase?: string;
-  dueDate?: string;
-  assignee?: string;
+export interface MilestoneInput {
+  name: string;
+  date: string;
+  status: string;
 }

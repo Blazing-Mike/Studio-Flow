@@ -25,6 +25,7 @@ export const GetDashboardResponse = zod.object({
   "revenueChange": zod.number(),
   "activeProjects": zod.number(),
   "outstanding": zod.number(),
+  "outstandingCount": zod.number(),
   "upcoming": zod.array(zod.object({
   "projectId": zod.string(),
   "projectName": zod.string(),
@@ -194,9 +195,15 @@ export const UpdateProjectParams = zod.object({
 
 export const UpdateProjectBody = zod.object({
   "name": zod.string().optional(),
+  "clientName": zod.string().optional(),
+  "clientEmail": zod.string().optional(),
+  "type": zod.string().optional(),
   "status": zod.string().optional(),
   "progress": zod.number().optional(),
-  "deadline": zod.string().optional()
+  "budget": zod.number().optional(),
+  "deadline": zod.string().optional(),
+  "goals": zod.string().optional(),
+  "notes": zod.string().optional()
 })
 
 export const UpdateProjectResponse = zod.object({
@@ -295,6 +302,78 @@ export const GenerateProjectPlanResponse = zod.object({
 
 
 /**
+ * @summary Update project proposal content
+ */
+export const UpdateProposalParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const UpdateProposalBody = zod.object({
+  "status": zod.string().optional(),
+  "headline": zod.string().optional(),
+  "body": zod.string().optional(),
+  "selectedPackage": zod.string().nullish()
+})
+
+export const UpdateProposalResponse = zod.object({
+  "status": zod.string(),
+  "headline": zod.string(),
+  "body": zod.string(),
+  "selectedPackage": zod.string().nullable()
+})
+
+
+/**
+ * @summary Create a task for a project
+ */
+export const CreateTaskParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const CreateTaskBody = zod.object({
+  "title": zod.string(),
+  "phase": zod.string(),
+  "status": zod.string(),
+  "dueDate": zod.string(),
+  "assignee": zod.string()
+})
+
+export const CreateTaskResponse = zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "phase": zod.string(),
+  "status": zod.string(),
+  "dueDate": zod.string(),
+  "assignee": zod.string().optional()
+})
+
+
+/**
+ * @summary Create an invoice for a project
+ */
+export const CreateInvoiceParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const CreateInvoiceBody = zod.object({
+  "description": zod.string(),
+  "amount": zod.number(),
+  "dueDate": zod.string(),
+  "status": zod.string(),
+  "number": zod.string().optional()
+})
+
+export const CreateInvoiceResponse = zod.object({
+  "id": zod.string(),
+  "number": zod.string(),
+  "amount": zod.number(),
+  "dueDate": zod.string(),
+  "status": zod.string(),
+  "description": zod.string()
+})
+
+
+/**
  * @summary Update a task
  */
 export const UpdateTaskParams = zod.object({
@@ -303,7 +382,10 @@ export const UpdateTaskParams = zod.object({
 
 export const UpdateTaskBody = zod.object({
   "status": zod.string().optional(),
-  "title": zod.string().optional()
+  "title": zod.string().optional(),
+  "phase": zod.string().optional(),
+  "dueDate": zod.string().optional(),
+  "assignee": zod.string().optional()
 })
 
 export const UpdateTaskResponse = zod.object({
@@ -317,14 +399,28 @@ export const UpdateTaskResponse = zod.object({
 
 
 /**
- * @summary Update invoice status
+ * @summary Delete a task
+ */
+export const DeleteTaskParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteTaskResponse = zod.void()
+
+
+/**
+ * @summary Update an invoice
  */
 export const UpdateInvoiceParams = zod.object({
   "id": zod.coerce.string()
 })
 
 export const UpdateInvoiceBody = zod.object({
-  "status": zod.string().optional()
+  "status": zod.string().optional(),
+  "description": zod.string().optional(),
+  "amount": zod.number().optional(),
+  "dueDate": zod.string().optional(),
+  "number": zod.string().optional()
 })
 
 export const UpdateInvoiceResponse = zod.object({
@@ -335,6 +431,68 @@ export const UpdateInvoiceResponse = zod.object({
   "status": zod.string(),
   "description": zod.string()
 })
+
+
+/**
+ * @summary Delete an invoice
+ */
+export const DeleteInvoiceParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteInvoiceResponse = zod.void()
+
+
+/**
+ * @summary Create a milestone for a project
+ */
+export const CreateMilestoneParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const CreateMilestoneBody = zod.object({
+  "name": zod.string(),
+  "date": zod.string(),
+  "status": zod.string()
+})
+
+export const CreateMilestoneResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "date": zod.string(),
+  "status": zod.string()
+})
+
+
+/**
+ * @summary Update a milestone
+ */
+export const UpdateMilestoneParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const UpdateMilestoneBody = zod.object({
+  "name": zod.string().optional(),
+  "date": zod.string().optional(),
+  "status": zod.string().optional()
+})
+
+export const UpdateMilestoneResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "date": zod.string(),
+  "status": zod.string()
+})
+
+
+/**
+ * @summary Delete a milestone
+ */
+export const DeleteMilestoneParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteMilestoneResponse = zod.void()
 
 
 /**
@@ -483,6 +641,75 @@ export const RequestProposalChangesResponse = zod.object({
   "type": zod.string()
 }))
 }))
+
+
+/**
+ * @summary Draft a proposal for a job posting from a URL or pasted description
+ */
+export const GenerateJobProposalBody = zod.object({
+  "url": zod.string().optional(),
+  "description": zod.string().optional(),
+  "tone": zod.enum(['confident', 'consultative', 'warm']).optional(),
+  "length": zod.enum(['short', 'standard', 'detailed']).optional(),
+  "profile": zod.object({
+  "name": zod.string().optional(),
+  "studio": zod.string().optional(),
+  "email": zod.string().optional(),
+  "bio": zod.string().optional(),
+  "portfolio": zod.string().optional()
+}).optional()
+})
+
+export const GenerateJobProposalResponse = zod.object({
+  "proposal": zod.string(),
+  "source": zod.string(),
+  "needsDescription": zod.boolean().optional(),
+  "draft": zod.object({
+  "id": zod.string(),
+  "proposal": zod.string(),
+  "source": zod.string(),
+  "createdAt": zod.string(),
+  "title": zod.string().optional(),
+  "org": zod.string().optional(),
+  "url": zod.string().optional(),
+  "tone": zod.string().optional(),
+  "length": zod.string().optional()
+}).optional(),
+  "job": zod.object({
+  "title": zod.string().optional(),
+  "org": zod.string().optional(),
+  "url": zod.string().optional(),
+  "description": zod.string().optional(),
+  "employmentType": zod.string().optional()
+}).optional()
+})
+
+
+/**
+ * @summary List saved proposal drafts
+ */
+export const GetJobProposalsResponseItem = zod.object({
+  "id": zod.string(),
+  "proposal": zod.string(),
+  "source": zod.string(),
+  "createdAt": zod.string(),
+  "title": zod.string().optional(),
+  "org": zod.string().optional(),
+  "url": zod.string().optional(),
+  "tone": zod.string().optional(),
+  "length": zod.string().optional()
+})
+export const GetJobProposalsResponse = zod.array(GetJobProposalsResponseItem)
+
+
+/**
+ * @summary Delete a saved proposal draft
+ */
+export const DeleteJobProposalParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteJobProposalResponse = zod.void()
 
 
 /**

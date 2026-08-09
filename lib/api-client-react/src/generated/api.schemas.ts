@@ -37,9 +37,15 @@ export interface ProjectInput {
 
 export interface ProjectUpdate {
   name?: string;
+  clientName?: string;
+  clientEmail?: string;
+  type?: string;
   status?: string;
   progress?: number;
+  budget?: number;
   deadline?: string;
+  goals?: string;
+  notes?: string;
 }
 
 export interface Proposal {
@@ -103,13 +109,118 @@ export type ProjectDetail = Project & {
   activities: Activity[];
 };
 
+export interface ProposalUpdate {
+  status?: string;
+  headline?: string;
+  body?: string;
+  /** @nullable */
+  selectedPackage?: string | null;
+}
+
+export interface MilestoneInput {
+  name: string;
+  date: string;
+  status: string;
+}
+
+export interface MilestoneUpdate {
+  name?: string;
+  date?: string;
+  status?: string;
+}
+
 export interface TaskUpdate {
   status?: string;
   title?: string;
+  phase?: string;
+  dueDate?: string;
+  assignee?: string;
+}
+
+export interface TaskInput {
+  title: string;
+  phase: string;
+  status: string;
+  dueDate: string;
+  assignee: string;
 }
 
 export interface InvoiceUpdate {
   status?: string;
+  description?: string;
+  amount?: number;
+  dueDate?: string;
+  number?: string;
+}
+
+export interface InvoiceInput {
+  description: string;
+  amount: number;
+  dueDate: string;
+  status: string;
+  number?: string;
+}
+
+export type JobProposalInputTone = typeof JobProposalInputTone[keyof typeof JobProposalInputTone];
+
+
+export const JobProposalInputTone = {
+  confident: 'confident',
+  consultative: 'consultative',
+  warm: 'warm',
+} as const;
+
+export type JobProposalInputLength = typeof JobProposalInputLength[keyof typeof JobProposalInputLength];
+
+
+export const JobProposalInputLength = {
+  short: 'short',
+  standard: 'standard',
+  detailed: 'detailed',
+} as const;
+
+export type JobProposalInputProfile = {
+  name?: string;
+  studio?: string;
+  email?: string;
+  bio?: string;
+  portfolio?: string;
+};
+
+export interface JobProposalInput {
+  url?: string;
+  description?: string;
+  tone?: JobProposalInputTone;
+  length?: JobProposalInputLength;
+  profile?: JobProposalInputProfile;
+}
+
+export type JobProposalJob = {
+  title?: string;
+  org?: string;
+  url?: string;
+  description?: string;
+  employmentType?: string;
+};
+
+export interface ProposalDraft {
+  id: string;
+  proposal: string;
+  source: string;
+  createdAt: string;
+  title?: string;
+  org?: string;
+  url?: string;
+  tone?: string;
+  length?: string;
+}
+
+export interface JobProposal {
+  proposal: string;
+  source: string;
+  needsDescription?: boolean;
+  draft?: ProposalDraft;
+  job?: JobProposalJob;
 }
 
 export interface ProposalDecision {
@@ -136,6 +247,7 @@ export interface Dashboard {
   revenueChange: number;
   activeProjects: number;
   outstanding: number;
+  outstandingCount: number;
   upcoming: Upcoming[];
   activity: Activity[];
   chart: ChartPoint[];

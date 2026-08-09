@@ -144,6 +144,66 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProjectDetail"
+  /projects/{id}/proposal:
+    patch:
+      operationId: updateProposal
+      tags: [workflow]
+      summary: Update project proposal content
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProposalUpdate"
+      responses:
+        "200":
+          description: Updated proposal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Proposal"
+  /projects/{id}/tasks:
+    post:
+      operationId: createTask
+      tags: [workflow]
+      summary: Create a task for a project
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+  /projects/{id}/invoices:
+    post:
+      operationId: createInvoice
+      tags: [workflow]
+      summary: Create an invoice for a project
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceInput"
+      responses:
+        "201":
+          description: Created invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
   /tasks/{id}:
     patch:
       operationId: updateTask
@@ -164,11 +224,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
+    delete:
+      operationId: deleteTask
+      tags: [workflow]
+      summary: Delete a task
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      responses:
+        "204":
+          description: Deleted task
   /invoices/{id}:
     patch:
       operationId: updateInvoice
       tags: [workflow]
-      summary: Update invoice status
+      summary: Update an invoice
       parameters:
         - $ref: "#/components/parameters/InvoiceId"
       requestBody:
@@ -184,6 +253,64 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Invoice"
+    delete:
+      operationId: deleteInvoice
+      tags: [workflow]
+      summary: Delete an invoice
+      parameters:
+        - $ref: "#/components/parameters/InvoiceId"
+      responses:
+        "204":
+          description: Deleted invoice
+  /projects/{id}/milestones:
+    post:
+      operationId: createMilestone
+      tags: [workflow]
+      summary: Create a milestone for a project
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MilestoneInput"
+      responses:
+        "201":
+          description: Created milestone
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Milestone"
+  /milestones/{id}:
+    patch:
+      operationId: updateMilestone
+      tags: [workflow]
+      summary: Update a milestone
+      parameters:
+        - $ref: "#/components/parameters/MilestoneId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MilestoneUpdate"
+      responses:
+        "200":
+          description: Updated milestone
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Milestone"
+    delete:
+      operationId: deleteMilestone
+      tags: [workflow]
+      summary: Delete a milestone
+      parameters:
+        - $ref: "#/components/parameters/MilestoneId"
+      responses:
+        "204":
+          description: Deleted milestone
   /projects/{id}/proposal/approve:
     post:
       operationId: approveProposal
@@ -224,6 +351,48 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProjectDetail"
+  /job-proposals/generate:
+    post:
+      operationId: generateJobProposal
+      tags: [workflow]
+      summary: Draft a proposal for a job posting from a URL or pasted description
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobProposalInput"
+      responses:
+        "200":
+          description: Drafted proposal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobProposal"
+  /job-proposals:
+    get:
+      operationId: getJobProposals
+      tags: [workflow]
+      summary: List saved proposal drafts
+      responses:
+        "200":
+          description: Saved drafts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProposalDraft"
+  /job-proposals/{id}:
+    delete:
+      operationId: deleteJobProposal
+      tags: [workflow]
+      summary: Delete a saved proposal draft
+      parameters:
+        - $ref: "#/components/parameters/ProposalDraftId"
+      responses:
+        "204":
+          description: Draft deleted
   /portal/{token}:
     get:
       operationId: getClientPortal
@@ -262,6 +431,18 @@ components:
       required: true
       schema:
         type: string
+    MilestoneId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    ProposalDraftId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
@@ -272,7 +453,20 @@ components:
         - status
     Project:
       type: object
-      required: [id, clientName, clientEmail, name, type, status, budget, deadline, progress, accent, initials]
+      required:
+        [
+          id,
+          clientName,
+          clientEmail,
+          name,
+          type,
+          status,
+          budget,
+          deadline,
+          progress,
+          accent,
+          initials,
+        ]
       properties:
         id: { type: string }
         clientName: { type: string }
@@ -302,14 +496,30 @@ components:
       type: object
       properties:
         name: { type: string }
+        clientName: { type: string }
+        clientEmail: { type: string }
+        type: { type: string }
         status: { type: string }
         progress: { type: number }
+        budget: { type: number }
         deadline: { type: string }
+        goals: { type: string }
+        notes: { type: string }
     ProjectDetail:
       allOf:
         - $ref: "#/components/schemas/Project"
         - type: object
-          required: [goals, notes, proposal, packages, milestones, tasks, invoices, activities]
+          required:
+            [
+              goals,
+              notes,
+              proposal,
+              packages,
+              milestones,
+              tasks,
+              invoices,
+              activities,
+            ]
           properties:
             goals: { type: string }
             notes: { type: string }
@@ -337,6 +547,13 @@ components:
         headline: { type: string }
         body: { type: string }
         selectedPackage: { type: ["string", "null"] }
+    ProposalUpdate:
+      type: object
+      properties:
+        status: { type: string }
+        headline: { type: string }
+        body: { type: string }
+        selectedPackage: { type: ["string", "null"] }
     Package:
       type: object
       required: [id, name, price, description, features, recommended]
@@ -357,6 +574,19 @@ components:
         name: { type: string }
         date: { type: string }
         status: { type: string }
+    MilestoneInput:
+      type: object
+      required: [name, date, status]
+      properties:
+        name: { type: string }
+        date: { type: string }
+        status: { type: string }
+    MilestoneUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        date: { type: string }
+        status: { type: string }
     Task:
       type: object
       required: [id, title, phase, status, dueDate]
@@ -372,6 +602,18 @@ components:
       properties:
         status: { type: string }
         title: { type: string }
+        phase: { type: string }
+        dueDate: { type: string }
+        assignee: { type: string }
+    TaskInput:
+      type: object
+      required: [title, phase, status, dueDate, assignee]
+      properties:
+        title: { type: string }
+        phase: { type: string }
+        status: { type: string }
+        dueDate: { type: string }
+        assignee: { type: string }
     Invoice:
       type: object
       required: [id, number, amount, dueDate, status, description]
@@ -386,6 +628,19 @@ components:
       type: object
       properties:
         status: { type: string }
+        description: { type: string }
+        amount: { type: number }
+        dueDate: { type: string }
+        number: { type: string }
+    InvoiceInput:
+      type: object
+      required: [description, amount, dueDate, status]
+      properties:
+        description: { type: string }
+        amount: { type: number }
+        dueDate: { type: string }
+        status: { type: string }
+        number: { type: string }
     Activity:
       type: object
       required: [id, actor, action, time, type]
@@ -395,6 +650,51 @@ components:
         action: { type: string }
         time: { type: string }
         type: { type: string }
+    JobProposalInput:
+      type: object
+      properties:
+        url: { type: string }
+        description: { type: string }
+        tone: { type: string, enum: [confident, consultative, warm] }
+        length: { type: string, enum: [short, standard, detailed] }
+        profile:
+          type: object
+          properties:
+            name: { type: string }
+            studio: { type: string }
+            email: { type: string }
+            bio: { type: string }
+            portfolio: { type: string }
+    JobProposal:
+      type: object
+      required: [proposal, source]
+      properties:
+        proposal: { type: string }
+        source: { type: string }
+        needsDescription: { type: boolean }
+        draft:
+          $ref: "#/components/schemas/ProposalDraft"
+        job:
+          type: object
+          properties:
+            title: { type: string }
+            org: { type: string }
+            url: { type: string }
+            description: { type: string }
+            employmentType: { type: string }
+    ProposalDraft:
+      type: object
+      required: [id, proposal, source, createdAt]
+      properties:
+        id: { type: string }
+        proposal: { type: string }
+        source: { type: string }
+        createdAt: { type: string }
+        title: { type: string }
+        org: { type: string }
+        url: { type: string }
+        tone: { type: string }
+        length: { type: string }
     ProposalDecision:
       type: object
       properties:
@@ -402,12 +702,24 @@ components:
         note: { type: string }
     Dashboard:
       type: object
-      required: [revenue, revenueChange, activeProjects, outstanding, upcoming, activity, chart, projects]
+      required:
+        [
+          revenue,
+          revenueChange,
+          activeProjects,
+          outstanding,
+          outstandingCount,
+          upcoming,
+          activity,
+          chart,
+          projects,
+        ]
       properties:
         revenue: { type: number }
         revenueChange: { type: number }
         activeProjects: { type: number }
         outstanding: { type: number }
+        outstandingCount: { type: number }
         upcoming:
           type: array
           items: { $ref: "#/components/schemas/Upcoming" }
@@ -436,4 +748,3 @@ components:
       properties:
         month: { type: string }
         value: { type: number }
-

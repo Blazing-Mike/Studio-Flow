@@ -6,10 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface TaskUpdate {
-  status?: string;
+export type JobProposalJob = {
   title?: string;
-  phase?: string;
-  dueDate?: string;
-  assignee?: string;
-}
+  org?: string;
+  url?: string;
+  description?: string;
+  employmentType?: string;
+};

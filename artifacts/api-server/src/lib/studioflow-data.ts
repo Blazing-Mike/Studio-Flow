@@ -1,3 +1,5 @@
+import { generatePlan, type Brief } from "./ai-generate";
+
 export type StudioProject = {
   id: string;
   clientName: string;
@@ -59,7 +61,11 @@ const sharedPackages = [
     name: "Starter",
     price: 2800,
     description: "A focused foundation for a confident launch.",
-    features: ["Strategy workshop", "Core visual direction", "Responsive landing page"],
+    features: [
+      "Strategy workshop",
+      "Core visual direction",
+      "Responsive landing page",
+    ],
     recommended: false,
   },
   {
@@ -67,7 +73,12 @@ const sharedPackages = [
     name: "Growth",
     price: 4800,
     description: "A complete brand and digital experience.",
-    features: ["Everything in Starter", "Full brand identity", "Five-page website", "Launch support"],
+    features: [
+      "Everything in Starter",
+      "Full brand identity",
+      "Five-page website",
+      "Launch support",
+    ],
     recommended: true,
   },
   {
@@ -75,14 +86,24 @@ const sharedPackages = [
     name: "Signature",
     price: 7200,
     description: "A high-touch partnership for ambitious teams.",
-    features: ["Everything in Growth", "Motion system", "Content direction", "90-day optimization"],
+    features: [
+      "Everything in Growth",
+      "Motion system",
+      "Content direction",
+      "90-day optimization",
+    ],
     recommended: false,
   },
 ];
 
 const project = (
-  values: Omit<StudioProject, "packages"> & { packages?: StudioProject["packages"] },
-): StudioProject => ({ ...values, packages: values.packages ?? structuredClone(sharedPackages) });
+  values: Omit<StudioProject, "packages"> & {
+    packages?: StudioProject["packages"];
+  },
+): StudioProject => ({
+  ...values,
+  packages: values.packages ?? structuredClone(sharedPackages),
+});
 
 export const projects: StudioProject[] = [
   project({
@@ -98,8 +119,10 @@ export const projects: StudioProject[] = [
     accent: "#E8A86B",
     initials: "NC",
     shareToken: "northstar-coffee",
-    goals: "Create a warmer, more premium digital home for Northstar's single-origin coffee subscription.",
-    notes: "The founders want the work to feel considered, tactile, and welcoming without becoming precious.",
+    goals:
+      "Create a warmer, more premium digital home for Northstar's single-origin coffee subscription.",
+    notes:
+      "The founders want the work to feel considered, tactile, and welcoming without becoming precious.",
     proposal: {
       status: "Approved",
       headline: "A warmer digital home for your daily ritual",
@@ -107,25 +130,105 @@ export const projects: StudioProject[] = [
       selectedPackage: "growth",
     },
     milestones: [
-      { id: "n1", name: "Discovery & direction", date: "2024-07-12", status: "complete" },
-      { id: "n2", name: "Identity system", date: "2024-07-26", status: "complete" },
-      { id: "n3", name: "Website design", date: "2024-08-16", status: "current" },
-      { id: "n4", name: "Launch & handoff", date: "2024-08-28", status: "upcoming" },
+      {
+        id: "n1",
+        name: "Discovery & direction",
+        date: "2024-07-12",
+        status: "complete",
+      },
+      {
+        id: "n2",
+        name: "Identity system",
+        date: "2024-07-26",
+        status: "complete",
+      },
+      {
+        id: "n3",
+        name: "Website design",
+        date: "2024-08-16",
+        status: "current",
+      },
+      {
+        id: "n4",
+        name: "Launch & handoff",
+        date: "2024-08-28",
+        status: "upcoming",
+      },
     ],
     tasks: [
-      { id: "nt1", title: "Finalize homepage art direction", phase: "Website design", status: "In Progress", dueDate: "2024-08-09", assignee: "You" },
-      { id: "nt2", title: "Review subscription flow", phase: "Website design", status: "Review", dueDate: "2024-08-12", assignee: "Maya" },
-      { id: "nt3", title: "Prepare launch checklist", phase: "Launch & handoff", status: "To Do", dueDate: "2024-08-23", assignee: "You" },
-      { id: "nt4", title: "Approve identity direction", phase: "Identity system", status: "Done", dueDate: "2024-07-25", assignee: "Lena" },
+      {
+        id: "nt1",
+        title: "Finalize homepage art direction",
+        phase: "Website design",
+        status: "In Progress",
+        dueDate: "2024-08-09",
+        assignee: "You",
+      },
+      {
+        id: "nt2",
+        title: "Review subscription flow",
+        phase: "Website design",
+        status: "Review",
+        dueDate: "2024-08-12",
+        assignee: "Maya",
+      },
+      {
+        id: "nt3",
+        title: "Prepare launch checklist",
+        phase: "Launch & handoff",
+        status: "To Do",
+        dueDate: "2024-08-23",
+        assignee: "You",
+      },
+      {
+        id: "nt4",
+        title: "Approve identity direction",
+        phase: "Identity system",
+        status: "Done",
+        dueDate: "2024-07-25",
+        assignee: "Lena",
+      },
     ],
     invoices: [
-      { id: "ni1", number: "INV-1048", amount: 2400, dueDate: "2024-07-19", status: "Paid", description: "50% project deposit" },
-      { id: "ni2", number: "INV-1062", amount: 2400, dueDate: "2024-08-28", status: "Outstanding", description: "Final project balance" },
+      {
+        id: "ni1",
+        number: "INV-1048",
+        amount: 2400,
+        dueDate: "2024-07-19",
+        status: "Paid",
+        description: "50% project deposit",
+      },
+      {
+        id: "ni2",
+        number: "INV-1062",
+        amount: 2400,
+        dueDate: "2024-08-28",
+        status: "Outstanding",
+        description: "Final project balance",
+      },
     ],
     activities: [
-      { id: "na1", actor: "Lena Park", action: "approved the identity direction", time: "2 hours ago", type: "approval" },
-      { id: "na2", actor: "You", action: "shared website design concepts", time: "Yesterday", type: "share" },
-      { id: "na3", actor: "Lena Park", action: "commented on the subscription flow", time: "2 days ago", type: "comment" },
+      {
+        id: "na1",
+        actor: "Lena Park",
+        action: "approved the identity direction",
+        time: "2 hours ago",
+        type: "approval",
+      },
+      {
+        id: "na2",
+        actor: "You",
+        action: "shared website design concepts",
+        time: "Yesterday",
+        type: "share",
+      },
+      {
+        id: "na3",
+        actor: "Lena Park",
+        action: "commented on the subscription flow",
+        time: "2 days ago",
+        type: "comment",
+      },
     ],
   }),
   project({
@@ -141,8 +244,10 @@ export const projects: StudioProject[] = [
     accent: "#A0B7A4",
     initials: "MH",
     shareToken: "meridian-health",
-    goals: "Make Meridian's patient journey feel less fragmented and more human.",
-    notes: "The team is preparing for a regional expansion and needs a clear, shared service vision.",
+    goals:
+      "Make Meridian's patient journey feel less fragmented and more human.",
+    notes:
+      "The team is preparing for a regional expansion and needs a clear, shared service vision.",
     proposal: {
       status: "Sent",
       headline: "A patient experience people can trust",
@@ -150,20 +255,68 @@ export const projects: StudioProject[] = [
       selectedPackage: null,
     },
     milestones: [
-      { id: "m1", name: "Proposal review", date: "2024-08-14", status: "current" },
-      { id: "m2", name: "Research sprint", date: "2024-08-23", status: "upcoming" },
-      { id: "m3", name: "Strategy readout", date: "2024-09-12", status: "upcoming" },
+      {
+        id: "m1",
+        name: "Proposal review",
+        date: "2024-08-14",
+        status: "current",
+      },
+      {
+        id: "m2",
+        name: "Research sprint",
+        date: "2024-08-23",
+        status: "upcoming",
+      },
+      {
+        id: "m3",
+        name: "Strategy readout",
+        date: "2024-09-12",
+        status: "upcoming",
+      },
     ],
     tasks: [
-      { id: "mt1", title: "Follow up on proposal", phase: "Proposal", status: "To Do", dueDate: "2024-08-10", assignee: "You" },
-      { id: "mt2", title: "Prepare research plan", phase: "Research sprint", status: "To Do", dueDate: "2024-08-19", assignee: "You" },
+      {
+        id: "mt1",
+        title: "Follow up on proposal",
+        phase: "Proposal",
+        status: "To Do",
+        dueDate: "2024-08-10",
+        assignee: "You",
+      },
+      {
+        id: "mt2",
+        title: "Prepare research plan",
+        phase: "Research sprint",
+        status: "To Do",
+        dueDate: "2024-08-19",
+        assignee: "You",
+      },
     ],
     invoices: [
-      { id: "mi1", number: "INV-1071", amount: 1800, dueDate: "2024-08-14", status: "Outstanding", description: "Project deposit" },
+      {
+        id: "mi1",
+        number: "INV-1071",
+        amount: 1800,
+        dueDate: "2024-08-14",
+        status: "Outstanding",
+        description: "Project deposit",
+      },
     ],
     activities: [
-      { id: "ma1", actor: "You", action: "sent a proposal to the Meridian team", time: "Yesterday", type: "share" },
-      { id: "ma2", actor: "Sam Rivera", action: "viewed the proposal", time: "Yesterday", type: "view" },
+      {
+        id: "ma1",
+        actor: "You",
+        action: "sent a proposal to the Meridian team",
+        time: "Yesterday",
+        type: "share",
+      },
+      {
+        id: "ma2",
+        actor: "Sam Rivera",
+        action: "viewed the proposal",
+        time: "Yesterday",
+        type: "view",
+      },
     ],
   }),
   project({
@@ -179,8 +332,10 @@ export const projects: StudioProject[] = [
     accent: "#C9B6E4",
     initials: "SS",
     shareToken: "sundays-studio",
-    goals: "Build a flexible campaign system for Sundays' late-summer collection.",
-    notes: "Keep the campaign expressive and tactile while giving the small team a clear toolkit to reuse.",
+    goals:
+      "Build a flexible campaign system for Sundays' late-summer collection.",
+    notes:
+      "Keep the campaign expressive and tactile while giving the small team a clear toolkit to reuse.",
     proposal: {
       status: "Approved",
       headline: "A campaign system with room to breathe",
@@ -188,22 +343,79 @@ export const projects: StudioProject[] = [
       selectedPackage: "starter",
     },
     milestones: [
-      { id: "s1", name: "Creative direction", date: "2024-08-02", status: "complete" },
-      { id: "s2", name: "Campaign production", date: "2024-08-14", status: "current" },
+      {
+        id: "s1",
+        name: "Creative direction",
+        date: "2024-08-02",
+        status: "complete",
+      },
+      {
+        id: "s2",
+        name: "Campaign production",
+        date: "2024-08-14",
+        status: "current",
+      },
       { id: "s3", name: "Launch", date: "2024-08-20", status: "upcoming" },
     ],
     tasks: [
-      { id: "st1", title: "Select final campaign frames", phase: "Production", status: "In Progress", dueDate: "2024-08-09", assignee: "Maya" },
-      { id: "st2", title: "Export social toolkit", phase: "Production", status: "To Do", dueDate: "2024-08-13", assignee: "You" },
-      { id: "st3", title: "Review creative direction", phase: "Direction", status: "Done", dueDate: "2024-08-01", assignee: "Nora" },
+      {
+        id: "st1",
+        title: "Select final campaign frames",
+        phase: "Production",
+        status: "In Progress",
+        dueDate: "2024-08-09",
+        assignee: "Maya",
+      },
+      {
+        id: "st2",
+        title: "Export social toolkit",
+        phase: "Production",
+        status: "To Do",
+        dueDate: "2024-08-13",
+        assignee: "You",
+      },
+      {
+        id: "st3",
+        title: "Review creative direction",
+        phase: "Direction",
+        status: "Done",
+        dueDate: "2024-08-01",
+        assignee: "Nora",
+      },
     ],
     invoices: [
-      { id: "si1", number: "INV-1056", amount: 1200, dueDate: "2024-07-31", status: "Paid", description: "Project deposit" },
-      { id: "si2", number: "INV-1067", amount: 1200, dueDate: "2024-08-20", status: "Outstanding", description: "Final project balance" },
+      {
+        id: "si1",
+        number: "INV-1056",
+        amount: 1200,
+        dueDate: "2024-07-31",
+        status: "Paid",
+        description: "Project deposit",
+      },
+      {
+        id: "si2",
+        number: "INV-1067",
+        amount: 1200,
+        dueDate: "2024-08-20",
+        status: "Outstanding",
+        description: "Final project balance",
+      },
     ],
     activities: [
-      { id: "sa1", actor: "Nora Kim", action: "approved the creative direction", time: "4 days ago", type: "approval" },
-      { id: "sa2", actor: "You", action: "uploaded campaign frames", time: "5 days ago", type: "share" },
+      {
+        id: "sa1",
+        actor: "Nora Kim",
+        action: "approved the creative direction",
+        time: "4 days ago",
+        type: "approval",
+      },
+      {
+        id: "sa2",
+        actor: "You",
+        action: "uploaded campaign frames",
+        time: "5 days ago",
+        type: "share",
+      },
     ],
   }),
 ];
@@ -214,17 +426,13 @@ export function getProject(id: string) {
   return projects.find((item) => item.id === id);
 }
 
-export function createFromBrief(input: {
-  clientName: string;
-  clientEmail: string;
-  name: string;
-  type: string;
-  goals: string;
-  budget: number;
-  deadline: string;
-  notes?: string;
-}) {
-  const initials = input.clientName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
+export async function createFromBrief(input: Brief) {
+  const initials = input.clientName
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   const id = `${input.clientName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now().toString(36)}`;
   const created = project({
     id,
@@ -248,21 +456,73 @@ export function createFromBrief(input: {
       selectedPackage: null,
     },
     milestones: [
-      { id: `${id}-1`, name: "Discovery & direction", date: input.deadline, status: "upcoming" },
-      { id: `${id}-2`, name: "Core production", date: input.deadline, status: "upcoming" },
-      { id: `${id}-3`, name: "Launch & handoff", date: input.deadline, status: "upcoming" },
+      {
+        id: `${id}-1`,
+        name: "Discovery & direction",
+        date: input.deadline,
+        status: "upcoming",
+      },
+      {
+        id: `${id}-2`,
+        name: "Core production",
+        date: input.deadline,
+        status: "upcoming",
+      },
+      {
+        id: `${id}-3`,
+        name: "Launch & handoff",
+        date: input.deadline,
+        status: "upcoming",
+      },
     ],
     tasks: [
-      { id: `${id}-task-1`, title: "Review generated project plan", phase: "Discovery", status: "To Do", dueDate: input.deadline, assignee: "You" },
-      { id: `${id}-task-2`, title: "Share first direction", phase: "Production", status: "To Do", dueDate: input.deadline, assignee: "You" },
+      {
+        id: `${id}-task-1`,
+        title: "Review generated project plan",
+        phase: "Discovery",
+        status: "To Do",
+        dueDate: input.deadline,
+        assignee: "You",
+      },
+      {
+        id: `${id}-task-2`,
+        title: "Share first direction",
+        phase: "Production",
+        status: "To Do",
+        dueDate: input.deadline,
+        assignee: "You",
+      },
     ],
     invoices: [
-      { id: `${id}-invoice-1`, number: `INV-${Math.floor(1100 + Math.random() * 200)}`, amount: Math.round(input.budget / 2), dueDate: input.deadline, status: "Outstanding", description: "Project deposit" },
+      {
+        id: `${id}-invoice-1`,
+        number: `INV-${Math.floor(1100 + Math.random() * 200)}`,
+        amount: Math.round(input.budget / 2),
+        dueDate: input.deadline,
+        status: "Outstanding",
+        description: "Project deposit",
+      },
     ],
     activities: [
-      { id: `${id}-activity-1`, actor: "You", action: "created the project brief", time: "Just now", type: "created" },
+      {
+        id: `${id}-activity-1`,
+        actor: "You",
+        action: "created the project brief",
+        time: "Just now",
+        type: "created",
+      },
     ],
   });
+
+  // Prefer an AI-generated plan; fall back to the local mock above on any failure.
+  const generated = await generatePlan(input);
+  if (generated) {
+    created.proposal = { status: "Draft", ...generated.proposal };
+    created.packages = generated.packages;
+    created.milestones = generated.milestones;
+    created.tasks = generated.tasks;
+  }
+
   projects.unshift(created);
   return created;
 }

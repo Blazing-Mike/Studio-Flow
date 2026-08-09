@@ -1,61 +1,114 @@
-import { Router, type IRouter } from "express";
 import {
-  ApproveProposalBody,
-  CreateProjectBody,
-  GetClientPortalParams,
-  GetDashboardResponse,
-  GetProjectParams,
-  GetProjectResponse,
-  GetProjectsQueryParams,
-  GetProjectsResponse,
-  RequestProposalChangesBody,
-  UpdateInvoiceBody,
-  UpdateProjectBody,
-  UpdateProjectParams,
-  UpdateTaskBody,
+    ApproveProposalBody,
+    CreateInvoiceBody,
+    CreateMilestoneBody,
+    CreateProjectBody,
+    CreateTaskBody,
+    GetClientPortalParams,
+    GetDashboardResponse,
+    GetProjectParams,
+    GetProjectResponse,
+    GetProjectsQueryParams,
+    GetProjectsResponse,
+    RequestProposalChangesBody,
+    UpdateInvoiceBody,
+    UpdateMilestoneBody,
+    UpdateProjectBody,
+    UpdateProjectParams,
+    UpdateProposalBody,
+    UpdateTaskBody,
 } from "@workspace/api-zod";
+import { Router, type IRouter } from "express";
+import { generatePlan } from "../lib/ai-generate";
 import {
-  createFromBrief,
-  detail,
-  getProject,
-  projects,
-  type StudioProject,
+    createFromBrief,
+    detail,
+    getProject,
+    projects,
+    type StudioProject,
 } from "../lib/studioflow-data";
 
 const router: IRouter = Router();
 
 function dashboard() {
   const allInvoices = projects.flatMap((item) => item.invoices);
-  const revenue = allInvoices.filter((invoice) => invoice.status === "Paid").reduce((sum, invoice) => sum + invoice.amount, 0);
-  const outstanding = allInvoices.filter((invoice) => invoice.status !== "Paid").reduce((sum, invoice) => sum + invoice.amount, 0);
+  const revenue = allInvoices
+    .filter((invoice) => invoice.status === "Paid")
+    .reduce((sum, invoice) => sum + invoice.amount, 0);
+  const outstandingInvoices = allInvoices.filter(
+    (invoice) => invoice.status !== "Paid",
+  );
+  const outstanding = outstandingInvoices.reduce(
+    (sum, invoice) => sum + invoice.amount,
+    0,
+  );
+  const activeProjects = projects.filter(
+    (item) => item.status === "In progress",
+  );
+
+  const chart = [
+    { month: "Mar", value: 4200 },
+    { month: "Apr", value: 6100 },
+    { month: "May", value: 5400 },
+    { month: "Jun", value: 7600 },
+    { month: "Jul", value: 6800 },
+    { month: "Aug", value: revenue },
+  ];
+  const previous = chart[chart.length - 2]?.value ?? 0;
+  const revenueChange = previous
+    ? Math.round(((revenue - previous) / previous) * 100)
+    : 0;
+
+  const daysUntil = (date: string) =>
+    Math.max(
+      0,
+      Math.ceil((new Date(date).getTime() - Date.now()) / 86_400_000),
+    );
+
+  const upcoming = projects
+    .filter((item) => item.status !== "Completed" && item.status !== "Archived")
+    .map((item) => {
+      const current = item.milestones.find(
+        (milestone) => milestone.status === "current",
+      );
+      const date = current?.date ?? item.deadline;
+      return {
+        projectId: item.id,
+        projectName: item.name,
+        clientName: item.clientName,
+        label: current?.name ?? "Project deadline",
+        date,
+        daysLeft: daysUntil(date),
+      };
+    })
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 4);
+
   return {
     revenue,
-    revenueChange: 12.8,
-    activeProjects: projects.filter((item) => item.status === "In progress").length,
+    revenueChange,
+    activeProjects: activeProjects.length,
     outstanding,
-    upcoming: projects.slice(0, 4).map((item) => ({
-      projectId: item.id,
-      projectName: item.name,
-      clientName: item.clientName,
-      label: item.milestones.find((milestone) => milestone.status === "current")?.name ?? "Project deadline",
-      date: item.milestones.find((milestone) => milestone.status === "current")?.date ?? item.deadline,
-      daysLeft: 9,
-    })),
+    outstandingCount: outstandingInvoices.length,
+    upcoming,
     activity: projects.flatMap((item) => item.activities).slice(0, 6),
-    chart: [
-      { month: "Mar", value: 4200 },
-      { month: "Apr", value: 6100 },
-      { month: "May", value: 5400 },
-      { month: "Jun", value: 7600 },
-      { month: "Jul", value: 6800 },
-      { month: "Aug", value: revenue },
-    ],
+    chart,
     projects: projects.map(summary),
   };
 }
 
 function summary(item: StudioProject) {
-  const { goals: _goals, notes: _notes, proposal: _proposal, packages: _packages, milestones: _milestones, tasks: _tasks, invoices: _invoices, activities: _activities, ...rest } = item;
+  const {
+    goals: _goals,
+    notes: _notes,
+    proposal: _proposal,
+    packages: _packages,
+    milestones: _milestones,
+    tasks: _tasks,
+    invoices: _invoices,
+    activities: _activities,
+    ...rest
+  } = item;
   return rest;
 }
 
@@ -70,20 +123,22 @@ router.get("/projects", (req, res) => {
     return;
   }
   const search = parsed.data.search?.toLowerCase();
-  const filtered = projects.filter((item) =>
-    (!search || `${item.name} ${item.clientName}`.toLowerCase().includes(search)) &&
-    (!parsed.data.status || item.status === parsed.data.status),
+  const filtered = projects.filter(
+    (item) =>
+      (!search ||
+        `${item.name} ${item.clientName}`.toLowerCase().includes(search)) &&
+      (!parsed.data.status || item.status === parsed.data.status),
   );
   res.json(GetProjectsResponse.parse(filtered.map(summary)));
 });
 
-router.post("/projects", (req, res) => {
+router.post("/projects", async (req, res) => {
   const parsed = CreateProjectBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  res.status(201).json(summary(createFromBrief(parsed.data)));
+  res.status(201).json(summary(await createFromBrief(parsed.data)));
 });
 
 router.get("/projects/:id", (req, res) => {
@@ -101,7 +156,11 @@ router.patch("/projects/:id", (req, res) => {
   const parsed = UpdateProjectBody.safeParse(req.body);
   const found = params.success ? getProject(params.data.id) : undefined;
   if (!found || !parsed.success) {
-    res.status(400).json({ error: parsed.success ? "Project not found" : parsed.error.message });
+    res
+      .status(400)
+      .json({
+        error: parsed.success ? "Project not found" : parsed.error.message,
+      });
     return;
   }
   Object.assign(found, parsed.data);
@@ -118,11 +177,29 @@ router.delete("/projects/:id", (req, res) => {
   res.status(204).send();
 });
 
-router.post("/projects/:id/generate", (req, res) => {
+router.post("/projects/:id/generate", async (req, res) => {
   const found = getProject(String(req.params.id));
   if (!found) {
     res.status(404).json({ error: "Project not found" });
     return;
+  }
+  // Regenerate the plan from the current brief with AI, falling back to the
+  // existing plan (mock or previously generated) if AI is unavailable.
+  const generated = await generatePlan({
+    clientName: found.clientName,
+    clientEmail: found.clientEmail,
+    name: found.name,
+    type: found.type,
+    goals: found.goals,
+    budget: found.budget,
+    deadline: found.deadline,
+    notes: found.notes,
+  });
+  if (generated) {
+    found.proposal = { status: "Sent", ...generated.proposal };
+    found.packages = generated.packages;
+    found.milestones = generated.milestones;
+    found.tasks = generated.tasks;
   }
   found.status = "Proposal sent";
   found.proposal.status = "Sent";
@@ -130,40 +207,192 @@ router.post("/projects/:id/generate", (req, res) => {
   res.json(GetProjectResponse.parse(found));
 });
 
+router.patch("/projects/:id/proposal", (req, res) => {
+  const parsed = UpdateProposalBody.safeParse(req.body);
+  const found = getProject(String(req.params.id));
+  if (!found || !parsed.success) {
+    res
+      .status(400)
+      .json({
+        error: parsed.success ? "Project not found" : parsed.error.message,
+      });
+    return;
+  }
+  Object.assign(found.proposal, parsed.data);
+  res.json(found.proposal);
+});
+
+router.post("/projects/:id/tasks", (req, res) => {
+  const parsed = CreateTaskBody.safeParse(req.body);
+  const found = getProject(String(req.params.id));
+  if (!found || !parsed.success) {
+    res
+      .status(400)
+      .json({
+        error: parsed.success ? "Project not found" : parsed.error.message,
+      });
+    return;
+  }
+  const task = { id: `${found.id}-task-${Date.now()}`, ...parsed.data };
+  found.tasks.unshift(task);
+  res.status(201).json(task);
+});
+
 router.patch("/tasks/:id", (req, res) => {
   const parsed = UpdateTaskBody.safeParse(req.body);
-  const owner = projects.find((item) => item.tasks.some((task) => task.id === String(req.params.id)));
+  const owner = projects.find((item) =>
+    item.tasks.some((task) => task.id === String(req.params.id)),
+  );
   const task = owner?.tasks.find((item) => item.id === String(req.params.id));
   if (!owner || !task || !parsed.success) {
-    res.status(400).json({ error: parsed.success ? "Task not found" : parsed.error.message });
+    res
+      .status(400)
+      .json({
+        error: parsed.success ? "Task not found" : parsed.error.message,
+      });
     return;
   }
   Object.assign(task, parsed.data);
-  const completedTasks = owner.tasks.filter((item) => item.status.toLowerCase() === "done").length;
-  owner.progress = owner.tasks.length ? Math.round((completedTasks / owner.tasks.length) * 100) : 0;
+  const completedTasks = owner.tasks.filter(
+    (item) => item.status.toLowerCase() === "done",
+  ).length;
+  owner.progress = owner.tasks.length
+    ? Math.round((completedTasks / owner.tasks.length) * 100)
+    : 0;
   res.json(task);
+});
+
+router.delete("/tasks/:id", (req, res) => {
+  const owner = projects.find((item) =>
+    item.tasks.some((task) => task.id === String(req.params.id)),
+  );
+  if (!owner) {
+    res.status(404).json({ error: "Task not found" });
+    return;
+  }
+  owner.tasks = owner.tasks.filter((task) => task.id !== String(req.params.id));
+  res.status(204).send();
+});
+
+router.post("/projects/:id/invoices", (req, res) => {
+  const parsed = CreateInvoiceBody.safeParse(req.body);
+  const found = getProject(String(req.params.id));
+  if (!found || !parsed.success) {
+    res
+      .status(400)
+      .json({
+        error: parsed.success ? "Project not found" : parsed.error.message,
+      });
+    return;
+  }
+  const invoice = {
+    id: `${found.id}-invoice-${Date.now()}`,
+    ...parsed.data,
+    number:
+      parsed.data.number || `INV-${Math.floor(1000 + Math.random() * 9000)}`,
+  };
+  found.invoices.unshift(invoice);
+  res.status(201).json(invoice);
 });
 
 router.patch("/invoices/:id", (req, res) => {
   const parsed = UpdateInvoiceBody.safeParse(req.body);
-  const invoice = projects.flatMap((item) => item.invoices).find((item) => item.id === String(req.params.id));
+  const invoice = projects
+    .flatMap((item) => item.invoices)
+    .find((item) => item.id === String(req.params.id));
   if (!invoice || !parsed.success) {
-    res.status(400).json({ error: parsed.success ? "Invoice not found" : parsed.error.message });
+    res
+      .status(400)
+      .json({
+        error: parsed.success ? "Invoice not found" : parsed.error.message,
+      });
     return;
   }
   Object.assign(invoice, parsed.data);
   res.json(invoice);
 });
 
+router.delete("/invoices/:id", (req, res) => {
+  const owner = projects.find((item) =>
+    item.invoices.some((invoice) => invoice.id === String(req.params.id)),
+  );
+  if (!owner) {
+    res.status(404).json({ error: "Invoice not found" });
+    return;
+  }
+  owner.invoices = owner.invoices.filter(
+    (invoice) => invoice.id !== String(req.params.id),
+  );
+  res.status(204).send();
+});
+
+router.post("/projects/:id/milestones", (req, res) => {
+  const parsed = CreateMilestoneBody.safeParse(req.body);
+  const found = getProject(String(req.params.id));
+  if (!found || !parsed.success) {
+    res
+      .status(400)
+      .json({
+        error: parsed.success ? "Project not found" : parsed.error.message,
+      });
+    return;
+  }
+  const milestone = {
+    id: `${found.id}-milestone-${Date.now()}`,
+    ...parsed.data,
+  };
+  found.milestones.push(milestone);
+  res.status(201).json(milestone);
+});
+
+router.patch("/milestones/:id", (req, res) => {
+  const parsed = UpdateMilestoneBody.safeParse(req.body);
+  const owner = projects.find((item) =>
+    item.milestones.some((milestone) => milestone.id === String(req.params.id)),
+  );
+  const milestone = owner?.milestones.find(
+    (item) => item.id === String(req.params.id),
+  );
+  if (!owner || !milestone || !parsed.success) {
+    res
+      .status(400)
+      .json({
+        error: parsed.success ? "Milestone not found" : parsed.error.message,
+      });
+    return;
+  }
+  Object.assign(milestone, parsed.data);
+  res.json(milestone);
+});
+
+router.delete("/milestones/:id", (req, res) => {
+  const owner = projects.find((item) =>
+    item.milestones.some((milestone) => milestone.id === String(req.params.id)),
+  );
+  if (!owner) {
+    res.status(404).json({ error: "Milestone not found" });
+    return;
+  }
+  owner.milestones = owner.milestones.filter(
+    (milestone) => milestone.id !== String(req.params.id),
+  );
+  res.status(204).send();
+});
+
 router.post("/projects/:id/proposal/approve", (req, res) => {
   const parsed = ApproveProposalBody.safeParse(req.body);
   const found = getProject(String(req.params.id));
   if (!found || !parsed.success) {
-    res.status(400).json({ error: parsed.success ? "Project not found" : parsed.error.message });
+    res
+      .status(400)
+      .json({
+        error: parsed.success ? "Project not found" : parsed.error.message,
+      });
     return;
   }
   found.proposal.status = "Approved";
-  found.proposal.selectedPackage = parsed.data.packageId ?? found.proposal.selectedPackage;
+  found.proposal.selectedPackage =
+    parsed.data.packageId ?? found.proposal.selectedPackage;
   found.status = "In progress";
   res.json(found);
 });
@@ -172,14 +401,20 @@ router.post("/projects/:id/proposal/changes", (req, res) => {
   const parsed = RequestProposalChangesBody.safeParse(req.body);
   const found = getProject(String(req.params.id));
   if (!found || !parsed.success) {
-    res.status(400).json({ error: parsed.success ? "Project not found" : parsed.error.message });
+    res
+      .status(400)
+      .json({
+        error: parsed.success ? "Project not found" : parsed.error.message,
+      });
     return;
   }
   found.proposal.status = "Changes requested";
   found.activities.unshift({
     id: `${found.id}-change-${Date.now()}`,
     actor: "Client",
-    action: parsed.data.note ? `requested changes: ${parsed.data.note}` : "requested changes to the proposal",
+    action: parsed.data.note
+      ? `requested changes: ${parsed.data.note}`
+      : "requested changes to the proposal",
     time: "Just now",
     type: "comment",
   });
@@ -188,7 +423,9 @@ router.post("/projects/:id/proposal/changes", (req, res) => {
 
 router.get("/portal/:token", (req, res) => {
   const params = GetClientPortalParams.safeParse(req.params);
-  const found = params.success ? projects.find((item) => item.shareToken === params.data.token) : undefined;
+  const found = params.success
+    ? projects.find((item) => item.shareToken === params.data.token)
+    : undefined;
   if (!found) {
     res.status(404).json({ error: "Portal not found" });
     return;

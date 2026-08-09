@@ -15,6 +15,7 @@ export interface Dashboard {
   revenueChange: number;
   activeProjects: number;
   outstanding: number;
+  outstandingCount: number;
   upcoming: Upcoming[];
   activity: Activity[];
   chart: ChartPoint[];

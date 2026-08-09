@@ -6,10 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface TaskUpdate {
+export interface ProposalUpdate {
   status?: string;
-  title?: string;
-  phase?: string;
-  dueDate?: string;
-  assignee?: string;
+  headline?: string;
+  body?: string;
+  /** @nullable */
+  selectedPackage?: string | null;
 }

@@ -8,7 +8,13 @@
 
 export interface ProjectUpdate {
   name?: string;
+  clientName?: string;
+  clientEmail?: string;
+  type?: string;
   status?: string;
   progress?: number;
+  budget?: number;
   deadline?: string;
+  goals?: string;
+  notes?: string;
 }
