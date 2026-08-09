@@ -162,6 +162,33 @@ function saveStudioProfile(profile: StudioProfile) {
   window.dispatchEvent(new Event("studioflow-profile-updated"));
 }
 
+const THEME_KEY = "studioflow-theme";
+
+function getStoredTheme(): string {
+  if (typeof window === "undefined") return "warm";
+  try {
+    return window.localStorage.getItem(THEME_KEY) ?? "warm";
+  } catch {
+    return "warm";
+  }
+}
+
+/** Persistent theme ("warm" | "sage" | "ink") applied to the document root. */
+function useTheme() {
+  const [theme, setTheme] = useState<string>(getStoredTheme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try {
+      window.localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      /* ignore storage errors */
+    }
+  }, [theme]);
+
+  return [theme, setTheme] as const;
+}
+
 const sampleProjects: Project[] = [
   {
     id: "p1",
@@ -445,8 +472,13 @@ function date(value: string) {
 }
 /** Split an ISO date (or "Mon D" label) into { day, month } for the date-block. */
 function dateParts(value: string) {
-  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00` : value);
-  return { day: d.getDate(), month: d.toLocaleString("en-US", { month: "short" }) };
+  const d = new Date(
+    /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00` : value,
+  );
+  return {
+    day: d.getDate(),
+    month: d.toLocaleString("en-US", { month: "short" }),
+  };
 }
 function cx(...names: (string | false | undefined)[]) {
   return names.filter(Boolean).join(" ");
@@ -478,7 +510,7 @@ function Skeleton({ className = "" }: { className?: string }) {
 }
 
 function AppShell({ children }: { children: ReactNode }) {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const profile = useStudioProfile();
   const projectsQuery = useGetProjects();
@@ -533,6 +565,7 @@ function AppShell({ children }: { children: ReactNode }) {
           <button
             data-testid="button-sidebar-logout"
             className="side-link subtle"
+            onClick={() => navigate("/welcome")}
           >
             <LogOut size={16} />
             <span>Sign out</span>
@@ -569,12 +602,19 @@ function AppShell({ children }: { children: ReactNode }) {
             </strong>
           </div>
           <div className="top-actions">
-            <button data-testid="button-search" className="icon-button">
+            <button
+              data-testid="button-search"
+              className="icon-button"
+              title="Search projects"
+              onClick={() => navigate("/projects")}
+            >
               <Search size={18} />
             </button>
             <button
               data-testid="button-notifications"
               className="icon-button notification"
+              title="You're all caught up"
+              onClick={() => navigate("/projects")}
             >
               <Bell size={18} />
               <i />
@@ -754,24 +794,26 @@ function DashboardPage() {
             {dashboard.upcoming.map((item) => {
               const parts = dateParts(item.date);
               return (
-              <Link
-                href={`/projects/${item.projectId}`}
-                key={item.projectId}
-                data-testid={`link-upcoming-${item.projectId}`}
-                className="upcoming-row"
-              >
-                <div className="date-block">
-                  <strong>{parts.day}</strong>
-                  <small>{parts.month}</small>
-                </div>
-                <div className="upcoming-copy">
-                  <strong>{item.label}</strong>
-                  <span>{item.projectName}</span>
-                </div>
-                <span className={cx("days-left", item.daysLeft < 7 && "soon")}>
-                  {item.daysLeft}d
-                </span>
-              </Link>
+                <Link
+                  href={`/projects/${item.projectId}`}
+                  key={item.projectId}
+                  data-testid={`link-upcoming-${item.projectId}`}
+                  className="upcoming-row"
+                >
+                  <div className="date-block">
+                    <strong>{parts.day}</strong>
+                    <small>{parts.month}</small>
+                  </div>
+                  <div className="upcoming-copy">
+                    <strong>{item.label}</strong>
+                    <span>{item.projectName}</span>
+                  </div>
+                  <span
+                    className={cx("days-left", item.daysLeft < 7 && "soon")}
+                  >
+                    {item.daysLeft}d
+                  </span>
+                </Link>
               );
             })}
           </div>
@@ -2975,7 +3017,7 @@ function ProposalsPage() {
 
 function SettingsPage() {
   const [saved, setSaved] = useState(false);
-  const [theme, setTheme] = useState("warm");
+  const [theme, setTheme] = useTheme();
   const profile = useStudioProfile();
   const [form, setForm] = useState<StudioProfile>(profile);
   const update = (key: string, value: string) =>
@@ -3136,6 +3178,9 @@ function Router() {
   );
 }
 function App() {
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", getStoredTheme());
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

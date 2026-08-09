@@ -842,6 +842,28 @@
   --sage: #79a99a;
   --coral: #d88471;
 }
+/* Theme: Quiet sage */
+:root[data-theme="sage"] {
+  --paper: #e7eee7;
+  --ink: #20373b;
+  --ink-soft: #4f6760;
+  --line: #d3ded4;
+  --cream: #f1f6f1;
+  --amber: #c9a25c;
+  --sage: #5f9484;
+  --coral: #d88471;
+}
+/* Theme: Ink & cream */
+:root[data-theme="ink"] {
+  --paper: #edeae2;
+  --ink: #22383c;
+  --ink-soft: #5b6766;
+  --line: #d8d2c4;
+  --cream: #f6f4ed;
+  --amber: #b8860b;
+  --sage: #3f6f6a;
+  --coral: #c97b63;
+}
 body {
   min-width: 320px;
   background: var(--paper);

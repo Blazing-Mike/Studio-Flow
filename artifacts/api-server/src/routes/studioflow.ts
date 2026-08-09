@@ -1,31 +1,31 @@
 import {
-    ApproveProposalBody,
-    CreateInvoiceBody,
-    CreateMilestoneBody,
-    CreateProjectBody,
-    CreateTaskBody,
-    GetClientPortalParams,
-    GetDashboardResponse,
-    GetProjectParams,
-    GetProjectResponse,
-    GetProjectsQueryParams,
-    GetProjectsResponse,
-    RequestProposalChangesBody,
-    UpdateInvoiceBody,
-    UpdateMilestoneBody,
-    UpdateProjectBody,
-    UpdateProjectParams,
-    UpdateProposalBody,
-    UpdateTaskBody,
+  ApproveProposalBody,
+  CreateInvoiceBody,
+  CreateMilestoneBody,
+  CreateProjectBody,
+  CreateTaskBody,
+  GetClientPortalParams,
+  GetDashboardResponse,
+  GetProjectParams,
+  GetProjectResponse,
+  GetProjectsQueryParams,
+  GetProjectsResponse,
+  RequestProposalChangesBody,
+  UpdateInvoiceBody,
+  UpdateMilestoneBody,
+  UpdateProjectBody,
+  UpdateProjectParams,
+  UpdateProposalBody,
+  UpdateTaskBody,
 } from "@workspace/api-zod";
 import { Router, type IRouter } from "express";
 import { generatePlan } from "../lib/ai-generate";
 import {
-    createFromBrief,
-    detail,
-    getProject,
-    projects,
-    type StudioProject,
+  createFromBrief,
+  detail,
+  getProject,
+  projects,
+  type StudioProject,
 } from "../lib/studioflow-data";
 
 const router: IRouter = Router();
@@ -46,7 +46,20 @@ function dashboard() {
     (item) => item.status === "In progress",
   );
 
-  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const MONTHS = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
   const chartHistory = [4200, 6100, 5400, 7600, 6800];
   const nowMonth = new Date().getMonth();
   const chart = Array.from({ length: 6 }, (_, i) => ({
@@ -155,11 +168,9 @@ router.patch("/projects/:id", (req, res) => {
   const parsed = UpdateProjectBody.safeParse(req.body);
   const found = params.success ? getProject(params.data.id) : undefined;
   if (!found || !parsed.success) {
-    res
-      .status(400)
-      .json({
-        error: parsed.success ? "Project not found" : parsed.error.message,
-      });
+    res.status(400).json({
+      error: parsed.success ? "Project not found" : parsed.error.message,
+    });
     return;
   }
   Object.assign(found, parsed.data);
@@ -210,11 +221,9 @@ router.patch("/projects/:id/proposal", (req, res) => {
   const parsed = UpdateProposalBody.safeParse(req.body);
   const found = getProject(String(req.params.id));
   if (!found || !parsed.success) {
-    res
-      .status(400)
-      .json({
-        error: parsed.success ? "Project not found" : parsed.error.message,
-      });
+    res.status(400).json({
+      error: parsed.success ? "Project not found" : parsed.error.message,
+    });
     return;
   }
   Object.assign(found.proposal, parsed.data);
@@ -225,11 +234,9 @@ router.post("/projects/:id/tasks", (req, res) => {
   const parsed = CreateTaskBody.safeParse(req.body);
   const found = getProject(String(req.params.id));
   if (!found || !parsed.success) {
-    res
-      .status(400)
-      .json({
-        error: parsed.success ? "Project not found" : parsed.error.message,
-      });
+    res.status(400).json({
+      error: parsed.success ? "Project not found" : parsed.error.message,
+    });
     return;
   }
   const task = { id: `${found.id}-task-${Date.now()}`, ...parsed.data };
@@ -244,11 +251,9 @@ router.patch("/tasks/:id", (req, res) => {
   );
   const task = owner?.tasks.find((item) => item.id === String(req.params.id));
   if (!owner || !task || !parsed.success) {
-    res
-      .status(400)
-      .json({
-        error: parsed.success ? "Task not found" : parsed.error.message,
-      });
+    res.status(400).json({
+      error: parsed.success ? "Task not found" : parsed.error.message,
+    });
     return;
   }
   Object.assign(task, parsed.data);
@@ -277,11 +282,9 @@ router.post("/projects/:id/invoices", (req, res) => {
   const parsed = CreateInvoiceBody.safeParse(req.body);
   const found = getProject(String(req.params.id));
   if (!found || !parsed.success) {
-    res
-      .status(400)
-      .json({
-        error: parsed.success ? "Project not found" : parsed.error.message,
-      });
+    res.status(400).json({
+      error: parsed.success ? "Project not found" : parsed.error.message,
+    });
     return;
   }
   const invoice = {
@@ -300,11 +303,9 @@ router.patch("/invoices/:id", (req, res) => {
     .flatMap((item) => item.invoices)
     .find((item) => item.id === String(req.params.id));
   if (!invoice || !parsed.success) {
-    res
-      .status(400)
-      .json({
-        error: parsed.success ? "Invoice not found" : parsed.error.message,
-      });
+    res.status(400).json({
+      error: parsed.success ? "Invoice not found" : parsed.error.message,
+    });
     return;
   }
   Object.assign(invoice, parsed.data);
@@ -329,11 +330,9 @@ router.post("/projects/:id/milestones", (req, res) => {
   const parsed = CreateMilestoneBody.safeParse(req.body);
   const found = getProject(String(req.params.id));
   if (!found || !parsed.success) {
-    res
-      .status(400)
-      .json({
-        error: parsed.success ? "Project not found" : parsed.error.message,
-      });
+    res.status(400).json({
+      error: parsed.success ? "Project not found" : parsed.error.message,
+    });
     return;
   }
   const milestone = {
@@ -353,11 +352,9 @@ router.patch("/milestones/:id", (req, res) => {
     (item) => item.id === String(req.params.id),
   );
   if (!owner || !milestone || !parsed.success) {
-    res
-      .status(400)
-      .json({
-        error: parsed.success ? "Milestone not found" : parsed.error.message,
-      });
+    res.status(400).json({
+      error: parsed.success ? "Milestone not found" : parsed.error.message,
+    });
     return;
   }
   Object.assign(milestone, parsed.data);
@@ -382,11 +379,9 @@ router.post("/projects/:id/proposal/approve", (req, res) => {
   const parsed = ApproveProposalBody.safeParse(req.body);
   const found = getProject(String(req.params.id));
   if (!found || !parsed.success) {
-    res
-      .status(400)
-      .json({
-        error: parsed.success ? "Project not found" : parsed.error.message,
-      });
+    res.status(400).json({
+      error: parsed.success ? "Project not found" : parsed.error.message,
+    });
     return;
   }
   found.proposal.status = "Approved";
@@ -400,11 +395,9 @@ router.post("/projects/:id/proposal/changes", (req, res) => {
   const parsed = RequestProposalChangesBody.safeParse(req.body);
   const found = getProject(String(req.params.id));
   if (!found || !parsed.success) {
-    res
-      .status(400)
-      .json({
-        error: parsed.success ? "Project not found" : parsed.error.message,
-      });
+    res.status(400).json({
+      error: parsed.success ? "Project not found" : parsed.error.message,
+    });
     return;
   }
   found.proposal.status = "Changes requested";
