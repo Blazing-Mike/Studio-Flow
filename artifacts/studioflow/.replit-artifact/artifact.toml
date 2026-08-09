@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "StudioFlow"
+description = "An AI-powered client workspace for freelancers and small creative agencies to turn briefs into polished proposals, project plans, approvals, invoices, and client portals."
+version = "1.0.0"
+id = "artifacts/studioflow"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24321
+
+[services.development]
+run = "pnpm --filter @workspace/studioflow run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/studioflow", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/studioflow/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24321"
+BASE_PATH = "/"

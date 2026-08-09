@@ -10,6 +10,14 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: dashboard
+    description: Dashboard operations
+  - name: projects
+    description: Project workspace operations
+  - name: workflow
+    description: Tasks, invoices, and proposal workflow operations
+  - name: portal
+    description: Client-facing portal operations
 paths:
   /healthz:
     get:
@@ -24,7 +32,236 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+  /projects:
+    get:
+      operationId: getProjects
+      tags: [projects]
+      summary: List projects
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+    post:
+      operationId: createProject
+      tags: [projects]
+      summary: Create a project from a brief
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectInput"
+      responses:
+        "201":
+          description: Created project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+  /projects/{id}:
+    get:
+      operationId: getProject
+      tags: [projects]
+      summary: Get a project workspace
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: Project workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectDetail"
+        "404":
+          description: Project not found
+    patch:
+      operationId: updateProject
+      tags: [projects]
+      summary: Update project
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectUpdate"
+      responses:
+        "200":
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+    delete:
+      operationId: archiveProject
+      tags: [projects]
+      summary: Archive project
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "204":
+          description: Project archived
+  /projects/{id}/generate:
+    post:
+      operationId: generateProjectPlan
+      tags: [projects]
+      summary: Generate proposal and project plan
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: Generated project plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectDetail"
+  /tasks/{id}:
+    patch:
+      operationId: updateTask
+      tags: [workflow]
+      summary: Update a task
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdate"
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+  /invoices/{id}:
+    patch:
+      operationId: updateInvoice
+      tags: [workflow]
+      summary: Update invoice status
+      parameters:
+        - $ref: "#/components/parameters/InvoiceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceUpdate"
+      responses:
+        "200":
+          description: Updated invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+  /projects/{id}/proposal/approve:
+    post:
+      operationId: approveProposal
+      tags: [workflow]
+      summary: Approve a proposal from the client portal
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProposalDecision"
+      responses:
+        "200":
+          description: Approved project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectDetail"
+  /projects/{id}/proposal/changes:
+    post:
+      operationId: requestProposalChanges
+      tags: [workflow]
+      summary: Request proposal changes
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProposalDecision"
+      responses:
+        "200":
+          description: Project with change request recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectDetail"
+  /portal/{token}:
+    get:
+      operationId: getClientPortal
+      tags: [portal]
+      summary: Get client portal by share token
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Client portal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectDetail"
 components:
+  parameters:
+    ProjectId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    TaskId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    InvoiceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +270,170 @@ components:
           type: string
       required:
         - status
+    Project:
+      type: object
+      required: [id, clientName, clientEmail, name, type, status, budget, deadline, progress, accent, initials]
+      properties:
+        id: { type: string }
+        clientName: { type: string }
+        clientEmail: { type: string }
+        name: { type: string }
+        type: { type: string }
+        status: { type: string }
+        budget: { type: number }
+        deadline: { type: string }
+        progress: { type: number }
+        accent: { type: string }
+        initials: { type: string }
+        shareToken: { type: string }
+    ProjectInput:
+      type: object
+      required: [clientName, clientEmail, name, type, goals, budget, deadline]
+      properties:
+        clientName: { type: string }
+        clientEmail: { type: string }
+        name: { type: string }
+        type: { type: string }
+        goals: { type: string }
+        budget: { type: number }
+        deadline: { type: string }
+        notes: { type: string }
+    ProjectUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        status: { type: string }
+        progress: { type: number }
+        deadline: { type: string }
+    ProjectDetail:
+      allOf:
+        - $ref: "#/components/schemas/Project"
+        - type: object
+          required: [goals, notes, proposal, packages, milestones, tasks, invoices, activities]
+          properties:
+            goals: { type: string }
+            notes: { type: string }
+            proposal: { $ref: "#/components/schemas/Proposal" }
+            packages:
+              type: array
+              items: { $ref: "#/components/schemas/Package" }
+            milestones:
+              type: array
+              items: { $ref: "#/components/schemas/Milestone" }
+            tasks:
+              type: array
+              items: { $ref: "#/components/schemas/Task" }
+            invoices:
+              type: array
+              items: { $ref: "#/components/schemas/Invoice" }
+            activities:
+              type: array
+              items: { $ref: "#/components/schemas/Activity" }
+    Proposal:
+      type: object
+      required: [status, headline, body, selectedPackage]
+      properties:
+        status: { type: string }
+        headline: { type: string }
+        body: { type: string }
+        selectedPackage: { type: ["string", "null"] }
+    Package:
+      type: object
+      required: [id, name, price, description, features, recommended]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        price: { type: number }
+        description: { type: string }
+        features:
+          type: array
+          items: { type: string }
+        recommended: { type: boolean }
+    Milestone:
+      type: object
+      required: [id, name, date, status]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        date: { type: string }
+        status: { type: string }
+    Task:
+      type: object
+      required: [id, title, phase, status, dueDate]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        phase: { type: string }
+        status: { type: string }
+        dueDate: { type: string }
+        assignee: { type: string }
+    TaskUpdate:
+      type: object
+      properties:
+        status: { type: string }
+        title: { type: string }
+    Invoice:
+      type: object
+      required: [id, number, amount, dueDate, status, description]
+      properties:
+        id: { type: string }
+        number: { type: string }
+        amount: { type: number }
+        dueDate: { type: string }
+        status: { type: string }
+        description: { type: string }
+    InvoiceUpdate:
+      type: object
+      properties:
+        status: { type: string }
+    Activity:
+      type: object
+      required: [id, actor, action, time, type]
+      properties:
+        id: { type: string }
+        actor: { type: string }
+        action: { type: string }
+        time: { type: string }
+        type: { type: string }
+    ProposalDecision:
+      type: object
+      properties:
+        packageId: { type: string }
+        note: { type: string }
+    Dashboard:
+      type: object
+      required: [revenue, revenueChange, activeProjects, outstanding, upcoming, activity, chart, projects]
+      properties:
+        revenue: { type: number }
+        revenueChange: { type: number }
+        activeProjects: { type: number }
+        outstanding: { type: number }
+        upcoming:
+          type: array
+          items: { $ref: "#/components/schemas/Upcoming" }
+        activity:
+          type: array
+          items: { $ref: "#/components/schemas/Activity" }
+        chart:
+          type: array
+          items: { $ref: "#/components/schemas/ChartPoint" }
+        projects:
+          type: array
+          items: { $ref: "#/components/schemas/Project" }
+    Upcoming:
+      type: object
+      required: [projectId, projectName, clientName, label, date, daysLeft]
+      properties:
+        projectId: { type: string }
+        projectName: { type: string }
+        clientName: { type: string }
+        label: { type: string }
+        date: { type: string }
+        daysLeft: { type: number }
+    ChartPoint:
+      type: object
+      required: [month, value]
+      properties:
+        month: { type: string }
+        value: { type: number }
 

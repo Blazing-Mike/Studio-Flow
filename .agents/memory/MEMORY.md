@@ -1,0 +1,1 @@
+- [OpenAPI integer compatibility](openapi-zod-compatibility.md) — Keep generated numeric fields as `number` when the workspace Zod generator lacks `z.int()`.

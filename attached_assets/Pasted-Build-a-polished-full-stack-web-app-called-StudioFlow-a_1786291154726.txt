@@ -1,0 +1,69 @@
+Build a polished full-stack web app called **StudioFlow**: an AI-powered client workspace for freelancers and small creative agencies.
+
+StudioFlow should turn a client brief into a complete, client-ready project workflow: proposal, scope, timeline, task plan, invoice, and approval portal.
+
+The product should feel like a real SaaS template that other freelancers can remix for their own work.
+
+Core user journey:
+
+1. A freelancer creates a new client/project and fills in a short brief: client name, project type, goals, budget range, deadline, and notes.
+2. StudioFlow uses AI to generate:
+   - a professional project proposal
+   - three package/pricing options
+   - suggested project milestones and dates
+   - a task list organized by phase
+   - a friendly client email to send with the proposal
+3. The freelancer can edit all generated content before sharing it.
+4. The app creates a public-looking client portal where the client can:
+   - review the proposal
+   - select a pricing package
+   - approve or request changes
+   - view project timeline and deliverables
+   - see invoices and payment status
+5. The internal freelancer dashboard should show:
+   - active projects
+   - project status
+   - upcoming deadlines
+   - outstanding invoices
+   - recent client activity
+   - a small revenue chart
+
+Use realistic sample data so the app feels populated on first launch. Include at least three clients, multiple projects in different states, proposals, tasks, invoices, and activity history.
+
+Design direction:
+
+- Premium, modern, calm SaaS look.
+- Use a clean neutral background, dark text, one distinctive accent color, rounded cards, subtle borders, and clear typography.
+- Create a reusable design system: buttons, inputs, badges, cards, empty states, status indicators, tabs, modals, and toast notifications.
+- Support light and dark mode.
+- Make the desktop experience excellent, while remaining responsive on mobile.
+
+Pages and screens:
+
+- Landing page explaining StudioFlow with screenshots/mock dashboard sections and a clear “Start managing projects” call to action.
+- Dashboard.
+- Projects list with filters and search.
+- Project detail workspace with tabs for Overview, Proposal, Timeline, Tasks, Invoices, and Client Activity.
+- New Project / Brief form.
+- AI generation flow with a visible loading state and editable results.
+- Client Portal view.
+- Settings page for freelancer profile, branding, and payment settings.
+
+Functional interactions:
+
+- Create, edit, archive, and search projects.
+- Move tasks between To Do, In Progress, Review, and Done.
+- Mark invoices as paid or outstanding.
+- Let clients approve a proposal, select a package, or request changes.
+- Generate proposal content from the brief using an AI integration if an API key is available; otherwise, provide a high-quality local mock generator so the template works immediately.
+- Persist data locally or with a simple database.
+- Use clear success, error, empty, and loading states throughout.
+
+Integrations to prepare:
+
+- OpenAI for proposal and project-plan generation.
+- Stripe payment links or a clearly labeled demo payment flow.
+- Google Calendar-ready milestone export.
+- Email sharing flow with a generated client email.
+
+Start by proposing the app architecture, data model, screen map, component system, and a phased implementation plan. Then implement the application in small, testable steps.
