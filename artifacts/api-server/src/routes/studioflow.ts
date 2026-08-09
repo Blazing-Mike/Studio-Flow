@@ -132,12 +132,15 @@ router.post("/projects/:id/generate", (req, res) => {
 
 router.patch("/tasks/:id", (req, res) => {
   const parsed = UpdateTaskBody.safeParse(req.body);
-  const task = projects.flatMap((item) => item.tasks).find((item) => item.id === String(req.params.id));
-  if (!task || !parsed.success) {
+  const owner = projects.find((item) => item.tasks.some((task) => task.id === String(req.params.id)));
+  const task = owner?.tasks.find((item) => item.id === String(req.params.id));
+  if (!owner || !task || !parsed.success) {
     res.status(400).json({ error: parsed.success ? "Task not found" : parsed.error.message });
     return;
   }
   Object.assign(task, parsed.data);
+  const completedTasks = owner.tasks.filter((item) => item.status.toLowerCase() === "done").length;
+  owner.progress = owner.tasks.length ? Math.round((completedTasks / owner.tasks.length) * 100) : 0;
   res.json(task);
 });
 

@@ -1,4 +1,4 @@
-import { type CSSProperties, type FormEvent, type MouseEvent, type ReactNode, useState } from 'react';
+import { type CSSProperties, type FormEvent, type MouseEvent, type ReactNode, useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { Link, Route, Switch, useLocation, useParams, Router as WouterRouter } from 'wouter';
 import {
@@ -24,6 +24,51 @@ import NotFound from '@/pages/not-found';
 import './index.css';
 
 const queryClient = new QueryClient();
+
+type StudioProfile = {
+  name: string;
+  studio: string;
+  email: string;
+  bio: string;
+};
+
+const defaultProfile: StudioProfile = {
+  name: 'Alex Lee',
+  studio: 'Alex Lee Studio',
+  email: 'hello@alexlee.studio',
+  bio: 'Independent brand designer helping thoughtful businesses find their point of view.',
+};
+
+function getStoredProfile(): StudioProfile {
+  if (typeof window === 'undefined') return defaultProfile;
+  try {
+    const stored = window.localStorage.getItem('studioflow-profile');
+    return stored ? { ...defaultProfile, ...JSON.parse(stored) } : defaultProfile;
+  } catch {
+    return defaultProfile;
+  }
+}
+
+function profileInitials(name: string) {
+  return name.trim().split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase() || 'AL';
+}
+
+function useStudioProfile() {
+  const [profile, setProfile] = useState<StudioProfile>(getStoredProfile);
+
+  useEffect(() => {
+    const refresh = () => setProfile(getStoredProfile());
+    window.addEventListener('studioflow-profile-updated', refresh);
+    return () => window.removeEventListener('studioflow-profile-updated', refresh);
+  }, []);
+
+  return profile;
+}
+
+function saveStudioProfile(profile: StudioProfile) {
+  window.localStorage.setItem('studioflow-profile', JSON.stringify(profile));
+  window.dispatchEvent(new Event('studioflow-profile-updated'));
+}
 
 const sampleProjects: Project[] = [
   { id: 'p1', clientName: 'Maya Chen', clientEmail: 'maya@northstar.studio', name: 'Northstar brand refresh', type: 'Brand identity', status: 'In progress', budget: 12800, deadline: '2025-04-18', progress: 62, accent: '#d7a356', initials: 'MC', shareToken: 'northstar-demo' },
@@ -93,6 +138,7 @@ function Skeleton({ className = '' }: { className?: string }) { return <div clas
 function AppShell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const profile = useStudioProfile();
   const links = [
     { href: '/', label: 'Overview', icon: LayoutDashboard },
     { href: '/projects', label: 'Projects', icon: BriefcaseBusiness },
@@ -105,13 +151,13 @@ function AppShell({ children }: { children: ReactNode }) {
       <nav className="side-nav">{links.map(({ href, label, icon: Icon }) => <Link key={href} href={href} data-testid={`link-${label.toLowerCase()}`} className={cx('side-link', location === href && 'active')} onClick={() => setMobileOpen(false)}><Icon size={17} /><span>{label}</span>{label === 'Projects' && <span className="nav-count">4</span>}</Link>)}</nav>
       <div className="sidebar-bottom">
         <div className="sidebar-label">Your studio</div>
-        <div className="studio-card"><div className="avatar avatar-amber">AL</div><div><strong>Alex Lee</strong><small>Independent studio</small></div><ChevronDown size={14} /></div>
+        <div className="studio-card"><div className="avatar avatar-amber">{profileInitials(profile.name)}</div><div><strong>{profile.name}</strong><small>{profile.studio}</small></div><ChevronDown size={14} /></div>
         <button data-testid="button-sidebar-logout" className="side-link subtle"><LogOut size={16} /><span>Sign out</span></button>
       </div>
     </aside>
     {mobileOpen && <button className="mobile-scrim" onClick={() => setMobileOpen(false)} aria-label="Close menu" />}
     <main className="main-area">
-      <header className="topbar"><button data-testid="button-mobile-menu" className="icon-button mobile-menu" onClick={() => setMobileOpen(true)}><Menu size={20} /></button><div className="crumb"><span>Workspace</span><span className="crumb-slash">/</span><strong>{location === '/' ? 'Overview' : location.startsWith('/projects') ? 'Projects' : 'Settings'}</strong></div><div className="top-actions"><button data-testid="button-search" className="icon-button"><Search size={18} /></button><button data-testid="button-notifications" className="icon-button notification"><Bell size={18} /><i /></button><div className="avatar avatar-small">AL</div></div></header>
+      <header className="topbar"><button data-testid="button-mobile-menu" className="icon-button mobile-menu" onClick={() => setMobileOpen(true)}><Menu size={20} /></button><div className="crumb"><span>Workspace</span><span className="crumb-slash">/</span><strong>{location === '/' ? 'Overview' : location.startsWith('/projects') ? 'Projects' : 'Settings'}</strong></div><div className="top-actions"><button data-testid="button-search" className="icon-button"><Search size={18} /></button><button data-testid="button-notifications" className="icon-button notification"><Bell size={18} /><i /></button><div className="avatar avatar-small">{profileInitials(profile.name)}</div></div></header>
       <div className="page-content">{children}</div>
     </main>
   </div>;
@@ -124,7 +170,9 @@ function StatCard({ label, value, meta, icon: Icon, accent }: { label: string; v
 function DashboardPage() {
   const query = useGetDashboard();
   const dashboard = query.data ?? sampleDashboard;
-  return <AppShell><div className="page-head reveal"><div><p className="eyebrow">Tuesday, March 18, 2025</p><h1>Good morning, Alex <span className="wave-line">—</span></h1><p className="lede">Here’s the shape of your studio today.</p></div><Link href="/projects/new" data-testid="link-new-project" className="button primary"><Plus size={17} /> New project</Link></div>
+  const profile = useStudioProfile();
+  const firstName = profile.name.trim().split(/\s+/)[0] || 'there';
+  return <AppShell><div className="page-head reveal"><div><p className="eyebrow">Tuesday, March 18, 2025</p><h1>Good morning, {firstName} <span className="wave-line">—</span></h1><p className="lede">Here’s the shape of your studio today.</p></div><Link href="/projects/new" data-testid="link-new-project" className="button primary"><Plus size={17} /> New project</Link></div>
     {query.isLoading && <div className="stats-grid">{[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-36" />)}</div>}
     <div className="stats-grid reveal delay-1"><StatCard label="Revenue this month" value={money(dashboard.revenue)} meta={<>{dashboard.revenueChange}% <span className="up">↗ from last month</span></>} icon={CircleDollarSign} accent="#d7a356" /><StatCard label="Active projects" value={String(dashboard.activeProjects)} meta="2 need your attention" icon={FolderOpen} accent="#79a99a" /><StatCard label="Outstanding" value={money(dashboard.outstanding)} meta="Across 2 invoices" icon={ReceiptText} accent="#d88471" /><StatCard label="Studio capacity" value="72%" meta="A good week to say yes" icon={Gauge} accent="#9a8ab5" /></div>
     <div className="dashboard-grid reveal delay-2"><section className="panel revenue-panel"><div className="panel-head"><div><p className="eyebrow">Cash flow</p><h2>Revenue overview</h2></div><button data-testid="button-revenue-period" className="select-button">Last 6 months <ChevronDown size={14} /></button></div><div className="chart-wrap"><div className="chart-y"><span>$20k</span><span>$15k</span><span>$10k</span><span>$5k</span><span>$0</span></div><div className="bars">{dashboard.chart.map((point, index) => <div className="bar-col" key={point.month}><div className="bar-value">{money(point.value)}</div><div className="bar" style={{ height: `${Math.max(12, point.value / 200)}px`, animationDelay: `${index * 60}ms` }} /><span>{point.month}</span></div>)}</div></div></section><section className="panel upcoming-panel"><div className="panel-head"><div><p className="eyebrow">The next few days</p><h2>Upcoming</h2></div><CalendarDays size={18} className="panel-icon" /></div><div className="upcoming-list">{dashboard.upcoming.map(item => <Link href={`/projects/${item.projectId}`} key={item.projectId} data-testid={`link-upcoming-${item.projectId}`} className="upcoming-row"><div className="date-block"><strong>{item.date.split(' ')[1]}</strong><small>{item.date.split(' ')[0]}</small></div><div className="upcoming-copy"><strong>{item.label}</strong><span>{item.projectName}</span></div><span className={cx('days-left', item.daysLeft < 7 && 'soon')}>{item.daysLeft}d</span></Link>)}</div></section></div>
@@ -188,16 +236,22 @@ function ProjectPage() {
   const updateTask = useUpdateTask();
   const updateInvoice = useUpdateInvoice();
   const [generated, setGenerated] = useState(false);
+  const [portalCopied, setPortalCopied] = useState(false);
   const tabs = ['Overview', 'Proposal', 'Timeline', 'Tasks', 'Invoices', 'Client activity'];
   const refresh = () => queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(id ?? '') });
-  const toggleTask = (task: Task) => updateTask.mutate({ id: task.id, data: { status: task.status === 'done' ? 'todo' : 'done' } }, { onSuccess: refresh });
+  const toggleTask = (task: Task) => updateTask.mutate({ id: task.id, data: { status: task.status.toLowerCase() === 'done' ? 'todo' : 'done' } }, { onSuccess: refresh });
   const markInvoice = (invoice: Invoice) => updateInvoice.mutate({ id: invoice.id, data: { status: invoice.status === 'paid' ? 'sent' : 'paid' } }, { onSuccess: refresh });
   const doGenerate = () => { setGenerated(true); generate.mutate({ id: id ?? '' }, { onSuccess: () => { setGenerated(false); refresh(); }, onError: () => setTimeout(() => setGenerated(false), 1000) }); };
-  return <AppShell><div className="workspace-head reveal"><div className="workspace-heading"><Link href="/projects" className="back-link" data-testid="link-workspace-back"><ArrowLeft size={16} /> Projects</Link><div className="project-title-row"><div className="project-big-avatar" style={{ background: `${project.accent}22`, color: project.accent }}>{project.initials}</div><div><div className="eyebrow">{project.type} <span className="dot-separator">·</span> {project.clientName}</div><h1>{project.name}</h1></div><StatusPill status={project.status} /></div></div><div className="workspace-actions"><button data-testid="button-share-project" className="button outline" onClick={() => navigator.clipboard?.writeText(`${window.location.origin}/portal/${project.shareToken ?? id}`)}><Send size={15} /> Share portal</button><button data-testid="button-workspace-more" className="icon-button"><MoreHorizontal size={18} /></button></div></div><div className="workspace-meta reveal delay-1"><span><CalendarDays size={15} /> Due {date(project.deadline)}</span><span><CircleDollarSign size={15} /> {money(project.budget)} project value</span><div className="workspace-progress"><span>{project.progress}% complete</span><div className="progress-track"><i style={{ width: `${project.progress}%`, background: project.accent }} /></div></div></div><div className="tabs reveal delay-1">{tabs.map(item => <button data-testid={`tab-${item.toLowerCase().replaceAll(' ', '-')}`} key={item} className={cx(tab === item && 'active')} onClick={() => setTab(item)}>{item}{item === 'Tasks' && <em>{project.tasks.length}</em>}</button>)}</div><div className="workspace-content reveal delay-2">{query.isLoading ? <div className="workspace-loading"><Skeleton className="h-52" /><Skeleton className="h-52" /></div> : tab === 'Overview' ? <OverviewTab project={project} onGenerate={doGenerate} generating={generated || generate.isPending} /> : tab === 'Proposal' ? <ProposalTab project={project} /> : tab === 'Timeline' ? <TimelineTab milestones={project.milestones} /> : tab === 'Tasks' ? <TasksTab tasks={project.tasks} onToggle={toggleTask} /> : tab === 'Invoices' ? <InvoicesTab invoices={project.invoices} onMark={markInvoice} /> : <ActivityList activities={project.activities} />}</div></AppShell>;
+  const sharePortal = () => {
+    navigator.clipboard?.writeText(`${window.location.origin}/portal/${project.shareToken ?? id}`);
+    setPortalCopied(true);
+    window.setTimeout(() => setPortalCopied(false), 1600);
+  };
+  return <AppShell><div className="workspace-head reveal"><div className="workspace-heading"><Link href="/projects" className="back-link" data-testid="link-workspace-back"><ArrowLeft size={16} /> Projects</Link><div className="project-title-row"><div className="project-big-avatar" style={{ background: `${project.accent}22`, color: project.accent }}>{project.initials}</div><div><div className="eyebrow">{project.type} <span className="dot-separator">·</span> {project.clientName}</div><h1>{project.name}</h1></div><StatusPill status={project.status} /></div></div><div className="workspace-actions"><button data-testid="button-share-project" className="button outline share-portal-button" onClick={sharePortal}>{portalCopied ? <Check size={15} /> : <Send size={15} />} {portalCopied ? 'Copied' : 'Share portal'}</button><button data-testid="button-workspace-more" className="icon-button"><MoreHorizontal size={18} /></button></div></div><div className="workspace-meta reveal delay-1"><span><CalendarDays size={15} /> Due {date(project.deadline)}</span><span><CircleDollarSign size={15} /> {money(project.budget)} project value</span><div className="workspace-progress"><span>{project.progress}% complete</span><div className="progress-track"><i style={{ width: `${project.progress}%`, background: project.accent }} /></div></div></div><div className="tabs reveal delay-1">{tabs.map(item => <button data-testid={`tab-${item.toLowerCase().replaceAll(' ', '-')}`} key={item} className={cx(tab === item && 'active')} onClick={() => setTab(item)}>{item}{item === 'Tasks' && <em>{project.tasks.length}</em>}</button>)}</div><div className="workspace-content reveal delay-2">{query.isLoading ? <div className="workspace-loading"><Skeleton className="h-52" /><Skeleton className="h-52" /></div> : tab === 'Overview' ? <OverviewTab project={project} onGenerate={doGenerate} generating={generated || generate.isPending} /> : tab === 'Proposal' ? <ProposalTab project={project} /> : tab === 'Timeline' ? <TimelineTab milestones={project.milestones} /> : tab === 'Tasks' ? <TasksTab tasks={project.tasks} onToggle={toggleTask} /> : tab === 'Invoices' ? <InvoicesTab invoices={project.invoices} onMark={markInvoice} /> : <ActivityList activities={project.activities} />}</div></AppShell>;
 }
 
 function OverviewTab({ project, onGenerate, generating }: { project: ProjectDetail; onGenerate: () => void; generating: boolean }) {
-  return <div className="overview-layout"><div className="overview-main"><section className="panel intro-panel"><div className="intro-top"><div><p className="eyebrow">The brief</p><h2>{project.goals}</h2></div><Target size={25} /></div><p className="body-copy">{project.notes}</p></section><section className="panel next-panel"><div className="panel-head"><div><p className="eyebrow">Keep it moving</p><h2>Next up</h2></div><span className="next-count">{project.tasks.filter(t => t.status !== 'done').length} open</span></div>{project.tasks.filter(t => t.status !== 'done').slice(0, 3).map(task => <div className="next-task" key={task.id}><div className="task-check" /><div><strong>{task.title}</strong><span>{task.phase} · due {date(task.dueDate)}</span></div><ArrowUpRight size={15} /></div>)}</section></div><div className="overview-side"><section className="panel plan-card"><div className="plan-glow" /><Sparkles size={21} /><h3>Make the busywork disappear.</h3><p>Generate a polished proposal, packages, milestones, and tasks from the brief.</p><button data-testid="button-generate-plan" className="button dark" onClick={onGenerate} disabled={generating}>{generating ? <><Loader2 size={16} className="spin" /> Thinking through it…</> : <><Sparkles size={16} /> Generate project plan</>}</button></section><section className="panel mini-activity"><div className="panel-head"><h2>Recent activity</h2><Clock3 size={16} /></div><ActivityList activities={project.activities.slice(0, 3)} /></section></div></div>;
+  return <div className="overview-layout"><div className="overview-main"><section className="panel intro-panel"><div className="intro-top"><div><p className="eyebrow">The brief</p><h2>{project.goals}</h2></div><Target size={25} /></div><p className="body-copy">{project.notes}</p></section><section className="panel next-panel"><div className="panel-head"><div><p className="eyebrow">Keep it moving</p><h2>Next up</h2></div><span className="next-count">{project.tasks.filter(t => t.status.toLowerCase() !== 'done').length} open</span></div>{project.tasks.filter(t => t.status.toLowerCase() !== 'done').slice(0, 3).map(task => <div className="next-task" key={task.id}><div className="task-check" /><div><strong>{task.title}</strong><span>{task.phase} · due {date(task.dueDate)}</span></div><ArrowUpRight size={15} /></div>)}</section></div><div className="overview-side"><section className="panel plan-card"><div className="plan-glow" /><Sparkles size={21} /><h3>Make the busywork disappear.</h3><p>Generate a polished proposal, packages, milestones, and tasks from the brief.</p><button data-testid="button-generate-plan" className="button dark" onClick={onGenerate} disabled={generating}>{generating ? <><Loader2 size={16} className="spin" /> Thinking through it…</> : <><Sparkles size={16} /> Generate project plan</>}</button></section><section className="panel mini-activity"><div className="panel-head"><h2>Recent activity</h2><Clock3 size={16} /></div><ActivityList activities={project.activities.slice(0, 3)} /></section></div></div>;
 }
 
 function ProposalTab({ project }: { project: ProjectDetail }) {
@@ -210,6 +264,7 @@ function PackageCard({ pkg, selected, onSelect }: { pkg: Package; selected: bool
 
 function TimelineTab({ milestones }: { milestones: Milestone[] }) { return <section className="panel timeline-panel"><div className="panel-head"><div><p className="eyebrow">A clear path forward</p><h2>Project timeline</h2></div><button data-testid="button-timeline-filter" className="select-button">All milestones <ChevronDown size={14} /></button></div><div className="timeline">{milestones.map((milestone, i) => <div className={cx('milestone', milestone.status)} key={milestone.id}><div className="milestone-line"><div className="milestone-dot">{milestone.status === 'complete' ? <Check size={13} /> : i + 1}</div>{i < milestones.length - 1 && <div className="line" />}</div><div className="milestone-copy"><span>{milestone.status === 'current' ? 'In the studio now' : milestone.status === 'complete' ? 'Complete' : 'Coming up'}</span><h3>{milestone.name}</h3><p>{date(milestone.date)}</p></div></div>)}</div></section>; }
 function TasksTab({ tasks, onToggle }: { tasks: Task[]; onToggle: (task: Task) => void }) { return <section className="panel tasks-panel"><div className="panel-head"><div><p className="eyebrow">Small steps, big picture</p><h2>Tasks</h2></div><button data-testid="button-add-task" className="button outline"><Plus size={15} /> Add task</button></div><div className="task-table">{tasks.map(task => <div className="task-row" key={task.id}><button data-testid={`button-task-${task.id}`} className={cx('task-check', task.status === 'done' && 'done')} onClick={() => onToggle(task)}>{task.status === 'done' && <Check size={13} />}</button><div className={cx('task-title', task.status === 'done' && 'completed')}><strong>{task.title}</strong><span>{task.phase}</span></div><span className="task-assignee">{task.assignee}</span><span className="task-due">{date(task.dueDate)}</span><StatusPill status={task.status} /><button className="icon-button tiny" data-testid={`button-task-more-${task.id}`}><MoreHorizontal size={15} /></button></div>)}</div></section>; }
+function TasksTab({ tasks, onToggle }: { tasks: Task[]; onToggle: (task: Task) => void }) { return <section className="panel tasks-panel"><div className="panel-head"><div><p className="eyebrow">Small steps, big picture</p><h2>Tasks</h2></div><button data-testid="button-add-task" className="button outline"><Plus size={15} /> Add task</button></div><div className="task-table">{tasks.map(task => { const isDone = task.status.toLowerCase() === 'done'; return <div className="task-row" key={task.id}><button data-testid={`button-task-${task.id}`} className={cx('task-check', isDone && 'done')} onClick={() => onToggle(task)}>{isDone && <Check size={13} />}</button><div className={cx('task-title', isDone && 'completed')}><strong>{task.title}</strong><span>{task.phase}</span></div><span className="task-assignee">{task.assignee}</span><span className="task-due">{date(task.dueDate)}</span><StatusPill status={task.status} /><button className="icon-button tiny" data-testid={`button-task-more-${task.id}`}><MoreHorizontal size={15} /></button></div>; })}</div></section>; }
 function InvoicesTab({ invoices, onMark }: { invoices: Invoice[]; onMark: (invoice: Invoice) => void }) { return <section className="panel invoices-panel"><div className="panel-head"><div><p className="eyebrow">Money, without the awkwardness</p><h2>Invoices</h2></div><button data-testid="button-new-invoice" className="button outline"><Plus size={15} /> New invoice</button></div><div className="invoice-summary"><div><span>Invoiced</span><strong>{money(invoices.reduce((sum, i) => sum + i.amount, 0))}</strong></div><div><span>Paid</span><strong>{money(invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0))}</strong></div><div><span>Remaining</span><strong>{money(invoices.filter(i => i.status !== 'paid').reduce((sum, i) => sum + i.amount, 0))}</strong></div></div><div className="invoice-table">{invoices.map(invoice => <div className="invoice-row" key={invoice.id}><div className="invoice-icon"><ReceiptText size={17} /></div><div><strong>{invoice.number}</strong><span>{invoice.description}</span></div><strong className="invoice-amount">{money(invoice.amount)}</strong><span className="task-due">Due {date(invoice.dueDate)}</span><StatusPill status={invoice.status} /><button data-testid={`button-invoice-${invoice.id}`} className="button tiny-outline" onClick={() => onMark(invoice)}>{invoice.status === 'paid' ? 'Mark sent' : 'Mark paid'}</button></div>)}</div></section>; }
 
 function PortalPage() {
@@ -229,9 +284,10 @@ function PortalPage() {
 function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [theme, setTheme] = useState('warm');
-  const [form, setForm] = useState({ name: 'Alex Lee', studio: 'Alex Lee Studio', email: 'hello@alexlee.studio', bio: 'Independent brand designer helping thoughtful businesses find their point of view.' });
+  const profile = useStudioProfile();
+  const [form, setForm] = useState<StudioProfile>(profile);
   const update = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }));
-  const save = (e: FormEvent) => { e.preventDefault(); setSaved(true); setTimeout(() => setSaved(false), 1800); };
+  const save = (e: FormEvent) => { e.preventDefault(); saveStudioProfile(form); setSaved(true); setTimeout(() => setSaved(false), 1800); };
   return <AppShell><div className="page-head reveal"><div><p className="eyebrow">Your space, your rules</p><h1>Settings</h1><p className="lede">Shape how your studio shows up.</p></div>{saved && <span className="saved-note"><Check size={15} /> Saved</span>}</div><form className="settings-grid reveal delay-1" onSubmit={save}><section className="panel settings-section"><div className="settings-heading"><div className="settings-icon"><Users size={18} /></div><div><h2>Freelancer profile</h2><p>This appears on client-facing proposals.</p></div></div><div className="settings-fields"><label>Full name<input data-testid="input-settings-name" value={form.name} onChange={e => update('name', e.target.value)} /></label><label>Studio name<input data-testid="input-settings-studio" value={form.studio} onChange={e => update('studio', e.target.value)} /></label><label>Email address<input data-testid="input-settings-email" type="email" value={form.email} onChange={e => update('email', e.target.value)} /></label><label className="span-2">Short bio<textarea data-testid="textarea-settings-bio" rows={3} value={form.bio} onChange={e => update('bio', e.target.value)} /></label></div></section><section className="panel settings-section"><div className="settings-heading"><div className="settings-icon amber"><Palette size={18} /></div><div><h2>Brand & appearance</h2><p>A little personality goes a long way.</p></div></div><div className="theme-choices">{[['warm', 'Warm paper', '#f4f0e8'], ['sage', 'Quiet sage', '#e7eee7'], ['ink', 'Ink & cream', '#20373b']].map(([value, label, color]) => <button type="button" data-testid={`button-theme-${value}`} key={value} className={cx('theme-choice', theme === value && 'selected')} onClick={() => setTheme(value)}><span style={{ background: color }} /><strong>{label}</strong>{theme === value && <Check size={15} />}</button>)}</div></section><section className="panel settings-section"><div className="settings-heading"><div className="settings-icon green"><CircleDollarSign size={18} /></div><div><h2>Payments</h2><p>Defaults for your invoices and deposits.</p></div></div><div className="payment-row"><div><strong>USD · United States Dollar</strong><span>Default currency</span></div><CheckCircle2 size={19} /></div><div className="payment-row"><div><strong>40% deposit</strong><span>Suggested for new projects</span></div><ChevronDown size={17} /></div></section><div className="settings-save"><span>Changes are saved to this workspace.</span><button data-testid="button-save-settings" className="button primary" type="submit">Save changes</button></div></form></AppShell>;
 }
 
