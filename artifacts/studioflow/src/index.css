@@ -1114,6 +1114,40 @@
   --sage: #3f6f6a;
   --coral: #c97b63;
 }
+/* Theme: Replit */
+:root[data-theme="replit"] {
+  --paper: #ffffff;
+  --ink: #000000;
+  --ink-soft: #3d3d3d;
+  --line: #e8e8e8;
+  --cream: #ffffff;
+  --amber: #f26524;
+  --sage: #1b1b1b;
+  --coral: #e5484d;
+}
+/* Replit theme tweaks for hardcoded warm-toned components */
+:root[data-theme="replit"] .welcome-copy h1 em {
+  color: #f26524;
+}
+:root[data-theme="replit"] .plan-card {
+  background: #fafafa;
+  border-color: #ececec;
+}
+:root[data-theme="replit"] .plan-glow {
+  background: rgba(242, 101, 36, 0.12);
+}
+:root[data-theme="replit"] .package-card.selected {
+  box-shadow: 0 0 0 3px rgba(242, 101, 36, 0.2);
+}
+/* Replit theme: white sidebar text on the dark sidebar */
+:root[data-theme="replit"] .side-link,
+:root[data-theme="replit"] .side-link.active,
+:root[data-theme="replit"] .side-link.active .nav-count {
+  color: #ffffff;
+}
+:root[data-theme="replit"] .nav-count {
+  color: rgba(255, 255, 255, 0.72);
+}
 body {
   min-width: 320px;
   background: var(--paper);
@@ -1292,7 +1326,7 @@ a {
 .topbar {
   height: 72px;
   border-bottom: 1px solid var(--line);
-  background: rgba(244, 240, 232, 0.82);
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
   backdrop-filter: blur(10px);
   padding: 0 42px;
   display: flex;
@@ -2576,6 +2610,7 @@ label select:focus {
   justify-content: flex-end;
   align-items: center;
   gap: 8px;
+  margin-top: 10px;
 }
 .editor-form .editor-actions,
 .form-submit .editor-actions {

@@ -171,7 +171,7 @@ function getStoredTheme(): string {
   }
 }
 
-/** Persistent theme ("warm" | "sage" | "ink") applied to the document root. */
+/** Persistent theme ("warm" | "sage" | "ink" | "replit") applied to the document root. */
 function useTheme() {
   const [theme, setTheme] = useState<string>(getStoredTheme);
 
@@ -3224,6 +3224,7 @@ function SettingsPage() {
               ["warm", "Warm paper", "#f4f0e8"],
               ["sage", "Quiet sage", "#e7eee7"],
               ["ink", "Ink & cream", "#20373b"],
+              ["replit", "Replit", "#f26524"],
             ].map(([value, label, color]) => (
               <button
                 type="button"
