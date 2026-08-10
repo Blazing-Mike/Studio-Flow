@@ -909,40 +909,83 @@ function WelcomePage() {
                 <span />
                 <span />
                 <span />
-                <small>studioflow / overview</small>
+                <small>studioflow / proposal writer</small>
               </div>
               <div className="preview-window-body">
                 <div className="preview-side">
                   <div className="preview-logo">
                     <Zap size={10} />
                   </div>
-                  <i />
-                  <i />
-                  <i />
-                  <i />
-                </div>
-                <div className="preview-dashboard">
-                  <p>Tuesday, March 18, 2025</p>
-                  <h3>
-                    Good morning, Alex <b>—</b>
-                  </h3>
-                  <div className="preview-stats">
-                    <span />
-                    <span />
-                    <span />
+                  <div className="preview-side-item active">
+                    <LayoutDashboard size={12} />
                   </div>
-                  <div className="preview-panels">
+                  <div className="preview-side-item">
+                    <FileText size={12} />
+                  </div>
+                  <div className="preview-side-item">
+                    <BriefcaseBusiness size={12} />
+                  </div>
+                  <div className="preview-side-item">
+                    <Users size={12} />
+                  </div>
+                </div>
+                <div className="preview-writer">
+                  <div className="preview-writer-head">
                     <div>
-                      <i />
-                      <i />
-                      <i />
-                      <i />
+                      <p>Proposal writer</p>
+                      <h3>
+                        From brief to <b>beautiful yes.</b>
+                      </h3>
                     </div>
-                    <div>
-                      <b />
-                      <b />
-                      <b />
+                    <span className="preview-ai-badge">
+                      <Sparkles size={10} /> AI assisted
+                    </span>
+                  </div>
+                  <div className="preview-writer-grid">
+                    <div className="preview-brief-card">
+                      <div className="preview-card-label">
+                        <span>Client brief</span>
+                        <span className="preview-complete">Ready</span>
+                      </div>
+                      <strong>Northstar Coffee</strong>
+                      <small>Brand + ecommerce refresh</small>
+                      <p>
+                        A warmer digital home for a thoughtful coffee brand,
+                        with a clearer subscription story.
+                      </p>
+                      <div className="preview-brief-meta">
+                        <span>$4,800 budget</span>
+                        <span>Aug 29 deadline</span>
+                      </div>
+                      <div className="preview-generate">
+                        <Sparkles size={11} /> Generate proposal
+                      </div>
                     </div>
+                    <div className="preview-proposal-card">
+                      <div className="preview-card-label">
+                        <span>Draft proposal</span>
+                        <span className="preview-status-dot">Saved</span>
+                      </div>
+                      <h4>A warmer digital home for your daily ritual</h4>
+                      <p>
+                        Northstar has already built a beautiful product. This
+                        project gives that product a digital experience with
+                        the same care.
+                      </p>
+                      <div className="preview-package-row">
+                        <span>Starter</span>
+                        <span className="selected">Growth · $4,800</span>
+                        <span>Signature</span>
+                      </div>
+                      <div className="preview-proposal-actions">
+                        <span><Copy size={10} /> Copy proposal</span>
+                        <span><ArrowUpRight size={10} /> Client portal</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="preview-writer-footer">
+                    <span><CheckCircle2 size={11} /> Proposal, packages, and next steps ready</span>
+                    <span>2 min ago</span>
                   </div>
                 </div>
               </div>
@@ -950,8 +993,8 @@ function WelcomePage() {
             <div className="preview-note">
               <Sparkles size={15} />
               <span>
-                <strong>AI-assisted planning</strong>
-                <small>Brief in. Beautiful plan out.</small>
+                <strong>Write proposals faster</strong>
+                <small>Brief in. Client-ready copy out.</small>
               </span>
             </div>
           </div>
@@ -961,10 +1004,10 @@ function WelcomePage() {
           <div className="proof-grid">
             <div>
               <span className="proof-number">01</span>
-              <h2>Make a strong first impression.</h2>
+              <h2>Write proposals that sound like you.</h2>
               <p>
-                Turn a few honest notes into a polished proposal and three clear
-                ways to work together.
+                Turn a job brief or client notes into thoughtful proposal copy,
+                clear package options, and a confident next step.
               </p>
             </div>
             <div>
