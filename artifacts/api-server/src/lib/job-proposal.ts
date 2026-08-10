@@ -113,8 +113,9 @@ function isBlockedIp(ip: string): boolean {
 /**
  * SSRF guard: only allow public http/https URLs to known-good hosts. Resolves
  * hostnames and rejects any that map to private/loopback/link-local addresses.
+ * Exported so sibling fetchers (e.g. contra-portfolio) reuse the same guard.
  */
-async function isSafeUrl(raw: string): Promise<boolean> {
+export async function isSafeUrl(raw: string): Promise<boolean> {
   if (raw.length > 2048) return false;
   let parsed: URL;
   try {
@@ -136,7 +137,7 @@ async function isSafeUrl(raw: string): Promise<boolean> {
 }
 
 /** Fetch a URL and return its HTML text, or null on failure. */
-async function fetchHtml(url: string): Promise<string | null> {
+export async function fetchHtml(url: string): Promise<string | null> {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20000);

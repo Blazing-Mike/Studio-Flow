@@ -5,13 +5,14 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { JobProposalInputLength } from './jobProposalInputLength';
-import type { JobProposalInputProfile } from './jobProposalInputProfile';
-import type { JobProposalInputTone } from './jobProposalInputTone';
+import type { JobProposalInputLength } from "./jobProposalInputLength";
+import type { JobProposalInputProfile } from "./jobProposalInputProfile";
+import type { JobProposalInputTone } from "./jobProposalInputTone";
 
 export interface JobProposalInput {
   url?: string;
   description?: string;
+  portfolioUrl?: string;
   tone?: JobProposalInputTone;
   length?: JobProposalInputLength;
   profile?: JobProposalInputProfile;

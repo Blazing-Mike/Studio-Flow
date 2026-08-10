@@ -655,6 +655,11 @@ components:
       properties:
         url: { type: string }
         description: { type: string }
+        portfolioUrl:
+          {
+            type: string,
+            description: "Contra profile URL to auto-import relevant work/case studies as portfolio proof",
+          }
         tone: { type: string, enum: [confident, consultative, warm] }
         length: { type: string, enum: [short, standard, detailed] }
         profile:

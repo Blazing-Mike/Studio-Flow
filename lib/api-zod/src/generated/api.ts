@@ -5,779 +5,838 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import * as zod from 'zod';
-
+import * as zod from "zod";
 
 /**
  * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
-  "status": zod.string()
-})
-
+  status: zod.string(),
+});
 
 /**
  * @summary Get dashboard summary
  */
 export const GetDashboardResponse = zod.object({
-  "revenue": zod.number(),
-  "revenueChange": zod.number(),
-  "activeProjects": zod.number(),
-  "outstanding": zod.number(),
-  "outstandingCount": zod.number(),
-  "upcoming": zod.array(zod.object({
-  "projectId": zod.string(),
-  "projectName": zod.string(),
-  "clientName": zod.string(),
-  "label": zod.string(),
-  "date": zod.string(),
-  "daysLeft": zod.number()
-})),
-  "activity": zod.array(zod.object({
-  "id": zod.string(),
-  "actor": zod.string(),
-  "action": zod.string(),
-  "time": zod.string(),
-  "type": zod.string()
-})),
-  "chart": zod.array(zod.object({
-  "month": zod.string(),
-  "value": zod.number()
-})),
-  "projects": zod.array(zod.object({
-  "id": zod.string(),
-  "clientName": zod.string(),
-  "clientEmail": zod.string(),
-  "name": zod.string(),
-  "type": zod.string(),
-  "status": zod.string(),
-  "budget": zod.number(),
-  "deadline": zod.string(),
-  "progress": zod.number(),
-  "accent": zod.string(),
-  "initials": zod.string(),
-  "shareToken": zod.string().optional()
-}))
-})
-
+  revenue: zod.number(),
+  revenueChange: zod.number(),
+  activeProjects: zod.number(),
+  outstanding: zod.number(),
+  outstandingCount: zod.number(),
+  upcoming: zod.array(
+    zod.object({
+      projectId: zod.string(),
+      projectName: zod.string(),
+      clientName: zod.string(),
+      label: zod.string(),
+      date: zod.string(),
+      daysLeft: zod.number(),
+    }),
+  ),
+  activity: zod.array(
+    zod.object({
+      id: zod.string(),
+      actor: zod.string(),
+      action: zod.string(),
+      time: zod.string(),
+      type: zod.string(),
+    }),
+  ),
+  chart: zod.array(
+    zod.object({
+      month: zod.string(),
+      value: zod.number(),
+    }),
+  ),
+  projects: zod.array(
+    zod.object({
+      id: zod.string(),
+      clientName: zod.string(),
+      clientEmail: zod.string(),
+      name: zod.string(),
+      type: zod.string(),
+      status: zod.string(),
+      budget: zod.number(),
+      deadline: zod.string(),
+      progress: zod.number(),
+      accent: zod.string(),
+      initials: zod.string(),
+      shareToken: zod.string().optional(),
+    }),
+  ),
+});
 
 /**
  * @summary List projects
  */
 export const GetProjectsQueryParams = zod.object({
-  "search": zod.coerce.string().optional(),
-  "status": zod.coerce.string().optional()
-})
+  search: zod.coerce.string().optional(),
+  status: zod.coerce.string().optional(),
+});
 
 export const GetProjectsResponseItem = zod.object({
-  "id": zod.string(),
-  "clientName": zod.string(),
-  "clientEmail": zod.string(),
-  "name": zod.string(),
-  "type": zod.string(),
-  "status": zod.string(),
-  "budget": zod.number(),
-  "deadline": zod.string(),
-  "progress": zod.number(),
-  "accent": zod.string(),
-  "initials": zod.string(),
-  "shareToken": zod.string().optional()
-})
-export const GetProjectsResponse = zod.array(GetProjectsResponseItem)
-
+  id: zod.string(),
+  clientName: zod.string(),
+  clientEmail: zod.string(),
+  name: zod.string(),
+  type: zod.string(),
+  status: zod.string(),
+  budget: zod.number(),
+  deadline: zod.string(),
+  progress: zod.number(),
+  accent: zod.string(),
+  initials: zod.string(),
+  shareToken: zod.string().optional(),
+});
+export const GetProjectsResponse = zod.array(GetProjectsResponseItem);
 
 /**
  * @summary Create a project from a brief
  */
 export const CreateProjectBody = zod.object({
-  "clientName": zod.string(),
-  "clientEmail": zod.string(),
-  "name": zod.string(),
-  "type": zod.string(),
-  "goals": zod.string(),
-  "budget": zod.number(),
-  "deadline": zod.string(),
-  "notes": zod.string().optional()
-})
+  clientName: zod.string(),
+  clientEmail: zod.string(),
+  name: zod.string(),
+  type: zod.string(),
+  goals: zod.string(),
+  budget: zod.number(),
+  deadline: zod.string(),
+  notes: zod.string().optional(),
+});
 
 export const CreateProjectResponse = zod.object({
-  "id": zod.string(),
-  "clientName": zod.string(),
-  "clientEmail": zod.string(),
-  "name": zod.string(),
-  "type": zod.string(),
-  "status": zod.string(),
-  "budget": zod.number(),
-  "deadline": zod.string(),
-  "progress": zod.number(),
-  "accent": zod.string(),
-  "initials": zod.string(),
-  "shareToken": zod.string().optional()
-})
-
+  id: zod.string(),
+  clientName: zod.string(),
+  clientEmail: zod.string(),
+  name: zod.string(),
+  type: zod.string(),
+  status: zod.string(),
+  budget: zod.number(),
+  deadline: zod.string(),
+  progress: zod.number(),
+  accent: zod.string(),
+  initials: zod.string(),
+  shareToken: zod.string().optional(),
+});
 
 /**
  * @summary Get a project workspace
  */
 export const GetProjectParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
-export const GetProjectResponse = zod.object({
-  "id": zod.string(),
-  "clientName": zod.string(),
-  "clientEmail": zod.string(),
-  "name": zod.string(),
-  "type": zod.string(),
-  "status": zod.string(),
-  "budget": zod.number(),
-  "deadline": zod.string(),
-  "progress": zod.number(),
-  "accent": zod.string(),
-  "initials": zod.string(),
-  "shareToken": zod.string().optional()
-}).and(zod.object({
-  "goals": zod.string(),
-  "notes": zod.string(),
-  "proposal": zod.object({
-  "status": zod.string(),
-  "headline": zod.string(),
-  "body": zod.string(),
-  "selectedPackage": zod.string().nullable()
-}),
-  "packages": zod.array(zod.object({
-  "id": zod.string(),
-  "name": zod.string(),
-  "price": zod.number(),
-  "description": zod.string(),
-  "features": zod.array(zod.string()),
-  "recommended": zod.boolean()
-})),
-  "milestones": zod.array(zod.object({
-  "id": zod.string(),
-  "name": zod.string(),
-  "date": zod.string(),
-  "status": zod.string()
-})),
-  "tasks": zod.array(zod.object({
-  "id": zod.string(),
-  "title": zod.string(),
-  "phase": zod.string(),
-  "status": zod.string(),
-  "dueDate": zod.string(),
-  "assignee": zod.string().optional()
-})),
-  "invoices": zod.array(zod.object({
-  "id": zod.string(),
-  "number": zod.string(),
-  "amount": zod.number(),
-  "dueDate": zod.string(),
-  "status": zod.string(),
-  "description": zod.string()
-})),
-  "activities": zod.array(zod.object({
-  "id": zod.string(),
-  "actor": zod.string(),
-  "action": zod.string(),
-  "time": zod.string(),
-  "type": zod.string()
-}))
-}))
-
+export const GetProjectResponse = zod
+  .object({
+    id: zod.string(),
+    clientName: zod.string(),
+    clientEmail: zod.string(),
+    name: zod.string(),
+    type: zod.string(),
+    status: zod.string(),
+    budget: zod.number(),
+    deadline: zod.string(),
+    progress: zod.number(),
+    accent: zod.string(),
+    initials: zod.string(),
+    shareToken: zod.string().optional(),
+  })
+  .and(
+    zod.object({
+      goals: zod.string(),
+      notes: zod.string(),
+      proposal: zod.object({
+        status: zod.string(),
+        headline: zod.string(),
+        body: zod.string(),
+        selectedPackage: zod.string().nullable(),
+      }),
+      packages: zod.array(
+        zod.object({
+          id: zod.string(),
+          name: zod.string(),
+          price: zod.number(),
+          description: zod.string(),
+          features: zod.array(zod.string()),
+          recommended: zod.boolean(),
+        }),
+      ),
+      milestones: zod.array(
+        zod.object({
+          id: zod.string(),
+          name: zod.string(),
+          date: zod.string(),
+          status: zod.string(),
+        }),
+      ),
+      tasks: zod.array(
+        zod.object({
+          id: zod.string(),
+          title: zod.string(),
+          phase: zod.string(),
+          status: zod.string(),
+          dueDate: zod.string(),
+          assignee: zod.string().optional(),
+        }),
+      ),
+      invoices: zod.array(
+        zod.object({
+          id: zod.string(),
+          number: zod.string(),
+          amount: zod.number(),
+          dueDate: zod.string(),
+          status: zod.string(),
+          description: zod.string(),
+        }),
+      ),
+      activities: zod.array(
+        zod.object({
+          id: zod.string(),
+          actor: zod.string(),
+          action: zod.string(),
+          time: zod.string(),
+          type: zod.string(),
+        }),
+      ),
+    }),
+  );
 
 /**
  * @summary Update project
  */
 export const UpdateProjectParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
 export const UpdateProjectBody = zod.object({
-  "name": zod.string().optional(),
-  "clientName": zod.string().optional(),
-  "clientEmail": zod.string().optional(),
-  "type": zod.string().optional(),
-  "status": zod.string().optional(),
-  "progress": zod.number().optional(),
-  "budget": zod.number().optional(),
-  "deadline": zod.string().optional(),
-  "goals": zod.string().optional(),
-  "notes": zod.string().optional()
-})
+  name: zod.string().optional(),
+  clientName: zod.string().optional(),
+  clientEmail: zod.string().optional(),
+  type: zod.string().optional(),
+  status: zod.string().optional(),
+  progress: zod.number().optional(),
+  budget: zod.number().optional(),
+  deadline: zod.string().optional(),
+  goals: zod.string().optional(),
+  notes: zod.string().optional(),
+});
 
 export const UpdateProjectResponse = zod.object({
-  "id": zod.string(),
-  "clientName": zod.string(),
-  "clientEmail": zod.string(),
-  "name": zod.string(),
-  "type": zod.string(),
-  "status": zod.string(),
-  "budget": zod.number(),
-  "deadline": zod.string(),
-  "progress": zod.number(),
-  "accent": zod.string(),
-  "initials": zod.string(),
-  "shareToken": zod.string().optional()
-})
-
+  id: zod.string(),
+  clientName: zod.string(),
+  clientEmail: zod.string(),
+  name: zod.string(),
+  type: zod.string(),
+  status: zod.string(),
+  budget: zod.number(),
+  deadline: zod.string(),
+  progress: zod.number(),
+  accent: zod.string(),
+  initials: zod.string(),
+  shareToken: zod.string().optional(),
+});
 
 /**
  * @summary Archive project
  */
 export const ArchiveProjectParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
-export const ArchiveProjectResponse = zod.void()
-
+export const ArchiveProjectResponse = zod.void();
 
 /**
  * @summary Generate proposal and project plan
  */
 export const GenerateProjectPlanParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
-export const GenerateProjectPlanResponse = zod.object({
-  "id": zod.string(),
-  "clientName": zod.string(),
-  "clientEmail": zod.string(),
-  "name": zod.string(),
-  "type": zod.string(),
-  "status": zod.string(),
-  "budget": zod.number(),
-  "deadline": zod.string(),
-  "progress": zod.number(),
-  "accent": zod.string(),
-  "initials": zod.string(),
-  "shareToken": zod.string().optional()
-}).and(zod.object({
-  "goals": zod.string(),
-  "notes": zod.string(),
-  "proposal": zod.object({
-  "status": zod.string(),
-  "headline": zod.string(),
-  "body": zod.string(),
-  "selectedPackage": zod.string().nullable()
-}),
-  "packages": zod.array(zod.object({
-  "id": zod.string(),
-  "name": zod.string(),
-  "price": zod.number(),
-  "description": zod.string(),
-  "features": zod.array(zod.string()),
-  "recommended": zod.boolean()
-})),
-  "milestones": zod.array(zod.object({
-  "id": zod.string(),
-  "name": zod.string(),
-  "date": zod.string(),
-  "status": zod.string()
-})),
-  "tasks": zod.array(zod.object({
-  "id": zod.string(),
-  "title": zod.string(),
-  "phase": zod.string(),
-  "status": zod.string(),
-  "dueDate": zod.string(),
-  "assignee": zod.string().optional()
-})),
-  "invoices": zod.array(zod.object({
-  "id": zod.string(),
-  "number": zod.string(),
-  "amount": zod.number(),
-  "dueDate": zod.string(),
-  "status": zod.string(),
-  "description": zod.string()
-})),
-  "activities": zod.array(zod.object({
-  "id": zod.string(),
-  "actor": zod.string(),
-  "action": zod.string(),
-  "time": zod.string(),
-  "type": zod.string()
-}))
-}))
-
+export const GenerateProjectPlanResponse = zod
+  .object({
+    id: zod.string(),
+    clientName: zod.string(),
+    clientEmail: zod.string(),
+    name: zod.string(),
+    type: zod.string(),
+    status: zod.string(),
+    budget: zod.number(),
+    deadline: zod.string(),
+    progress: zod.number(),
+    accent: zod.string(),
+    initials: zod.string(),
+    shareToken: zod.string().optional(),
+  })
+  .and(
+    zod.object({
+      goals: zod.string(),
+      notes: zod.string(),
+      proposal: zod.object({
+        status: zod.string(),
+        headline: zod.string(),
+        body: zod.string(),
+        selectedPackage: zod.string().nullable(),
+      }),
+      packages: zod.array(
+        zod.object({
+          id: zod.string(),
+          name: zod.string(),
+          price: zod.number(),
+          description: zod.string(),
+          features: zod.array(zod.string()),
+          recommended: zod.boolean(),
+        }),
+      ),
+      milestones: zod.array(
+        zod.object({
+          id: zod.string(),
+          name: zod.string(),
+          date: zod.string(),
+          status: zod.string(),
+        }),
+      ),
+      tasks: zod.array(
+        zod.object({
+          id: zod.string(),
+          title: zod.string(),
+          phase: zod.string(),
+          status: zod.string(),
+          dueDate: zod.string(),
+          assignee: zod.string().optional(),
+        }),
+      ),
+      invoices: zod.array(
+        zod.object({
+          id: zod.string(),
+          number: zod.string(),
+          amount: zod.number(),
+          dueDate: zod.string(),
+          status: zod.string(),
+          description: zod.string(),
+        }),
+      ),
+      activities: zod.array(
+        zod.object({
+          id: zod.string(),
+          actor: zod.string(),
+          action: zod.string(),
+          time: zod.string(),
+          type: zod.string(),
+        }),
+      ),
+    }),
+  );
 
 /**
  * @summary Update project proposal content
  */
 export const UpdateProposalParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
 export const UpdateProposalBody = zod.object({
-  "status": zod.string().optional(),
-  "headline": zod.string().optional(),
-  "body": zod.string().optional(),
-  "selectedPackage": zod.string().nullish()
-})
+  status: zod.string().optional(),
+  headline: zod.string().optional(),
+  body: zod.string().optional(),
+  selectedPackage: zod.string().nullish(),
+});
 
 export const UpdateProposalResponse = zod.object({
-  "status": zod.string(),
-  "headline": zod.string(),
-  "body": zod.string(),
-  "selectedPackage": zod.string().nullable()
-})
-
+  status: zod.string(),
+  headline: zod.string(),
+  body: zod.string(),
+  selectedPackage: zod.string().nullable(),
+});
 
 /**
  * @summary Create a task for a project
  */
 export const CreateTaskParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
 export const CreateTaskBody = zod.object({
-  "title": zod.string(),
-  "phase": zod.string(),
-  "status": zod.string(),
-  "dueDate": zod.string(),
-  "assignee": zod.string()
-})
+  title: zod.string(),
+  phase: zod.string(),
+  status: zod.string(),
+  dueDate: zod.string(),
+  assignee: zod.string(),
+});
 
 export const CreateTaskResponse = zod.object({
-  "id": zod.string(),
-  "title": zod.string(),
-  "phase": zod.string(),
-  "status": zod.string(),
-  "dueDate": zod.string(),
-  "assignee": zod.string().optional()
-})
-
+  id: zod.string(),
+  title: zod.string(),
+  phase: zod.string(),
+  status: zod.string(),
+  dueDate: zod.string(),
+  assignee: zod.string().optional(),
+});
 
 /**
  * @summary Create an invoice for a project
  */
 export const CreateInvoiceParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
 export const CreateInvoiceBody = zod.object({
-  "description": zod.string(),
-  "amount": zod.number(),
-  "dueDate": zod.string(),
-  "status": zod.string(),
-  "number": zod.string().optional()
-})
+  description: zod.string(),
+  amount: zod.number(),
+  dueDate: zod.string(),
+  status: zod.string(),
+  number: zod.string().optional(),
+});
 
 export const CreateInvoiceResponse = zod.object({
-  "id": zod.string(),
-  "number": zod.string(),
-  "amount": zod.number(),
-  "dueDate": zod.string(),
-  "status": zod.string(),
-  "description": zod.string()
-})
-
+  id: zod.string(),
+  number: zod.string(),
+  amount: zod.number(),
+  dueDate: zod.string(),
+  status: zod.string(),
+  description: zod.string(),
+});
 
 /**
  * @summary Update a task
  */
 export const UpdateTaskParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
 export const UpdateTaskBody = zod.object({
-  "status": zod.string().optional(),
-  "title": zod.string().optional(),
-  "phase": zod.string().optional(),
-  "dueDate": zod.string().optional(),
-  "assignee": zod.string().optional()
-})
+  status: zod.string().optional(),
+  title: zod.string().optional(),
+  phase: zod.string().optional(),
+  dueDate: zod.string().optional(),
+  assignee: zod.string().optional(),
+});
 
 export const UpdateTaskResponse = zod.object({
-  "id": zod.string(),
-  "title": zod.string(),
-  "phase": zod.string(),
-  "status": zod.string(),
-  "dueDate": zod.string(),
-  "assignee": zod.string().optional()
-})
-
+  id: zod.string(),
+  title: zod.string(),
+  phase: zod.string(),
+  status: zod.string(),
+  dueDate: zod.string(),
+  assignee: zod.string().optional(),
+});
 
 /**
  * @summary Delete a task
  */
 export const DeleteTaskParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
-export const DeleteTaskResponse = zod.void()
-
+export const DeleteTaskResponse = zod.void();
 
 /**
  * @summary Update an invoice
  */
 export const UpdateInvoiceParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
 export const UpdateInvoiceBody = zod.object({
-  "status": zod.string().optional(),
-  "description": zod.string().optional(),
-  "amount": zod.number().optional(),
-  "dueDate": zod.string().optional(),
-  "number": zod.string().optional()
-})
+  status: zod.string().optional(),
+  description: zod.string().optional(),
+  amount: zod.number().optional(),
+  dueDate: zod.string().optional(),
+  number: zod.string().optional(),
+});
 
 export const UpdateInvoiceResponse = zod.object({
-  "id": zod.string(),
-  "number": zod.string(),
-  "amount": zod.number(),
-  "dueDate": zod.string(),
-  "status": zod.string(),
-  "description": zod.string()
-})
-
+  id: zod.string(),
+  number: zod.string(),
+  amount: zod.number(),
+  dueDate: zod.string(),
+  status: zod.string(),
+  description: zod.string(),
+});
 
 /**
  * @summary Delete an invoice
  */
 export const DeleteInvoiceParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
-export const DeleteInvoiceResponse = zod.void()
-
+export const DeleteInvoiceResponse = zod.void();
 
 /**
  * @summary Create a milestone for a project
  */
 export const CreateMilestoneParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
 export const CreateMilestoneBody = zod.object({
-  "name": zod.string(),
-  "date": zod.string(),
-  "status": zod.string()
-})
+  name: zod.string(),
+  date: zod.string(),
+  status: zod.string(),
+});
 
 export const CreateMilestoneResponse = zod.object({
-  "id": zod.string(),
-  "name": zod.string(),
-  "date": zod.string(),
-  "status": zod.string()
-})
-
+  id: zod.string(),
+  name: zod.string(),
+  date: zod.string(),
+  status: zod.string(),
+});
 
 /**
  * @summary Update a milestone
  */
 export const UpdateMilestoneParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
 export const UpdateMilestoneBody = zod.object({
-  "name": zod.string().optional(),
-  "date": zod.string().optional(),
-  "status": zod.string().optional()
-})
+  name: zod.string().optional(),
+  date: zod.string().optional(),
+  status: zod.string().optional(),
+});
 
 export const UpdateMilestoneResponse = zod.object({
-  "id": zod.string(),
-  "name": zod.string(),
-  "date": zod.string(),
-  "status": zod.string()
-})
-
+  id: zod.string(),
+  name: zod.string(),
+  date: zod.string(),
+  status: zod.string(),
+});
 
 /**
  * @summary Delete a milestone
  */
 export const DeleteMilestoneParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
-export const DeleteMilestoneResponse = zod.void()
-
+export const DeleteMilestoneResponse = zod.void();
 
 /**
  * @summary Approve a proposal from the client portal
  */
 export const ApproveProposalParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
 export const ApproveProposalBody = zod.object({
-  "packageId": zod.string().optional(),
-  "note": zod.string().optional()
-})
+  packageId: zod.string().optional(),
+  note: zod.string().optional(),
+});
 
-export const ApproveProposalResponse = zod.object({
-  "id": zod.string(),
-  "clientName": zod.string(),
-  "clientEmail": zod.string(),
-  "name": zod.string(),
-  "type": zod.string(),
-  "status": zod.string(),
-  "budget": zod.number(),
-  "deadline": zod.string(),
-  "progress": zod.number(),
-  "accent": zod.string(),
-  "initials": zod.string(),
-  "shareToken": zod.string().optional()
-}).and(zod.object({
-  "goals": zod.string(),
-  "notes": zod.string(),
-  "proposal": zod.object({
-  "status": zod.string(),
-  "headline": zod.string(),
-  "body": zod.string(),
-  "selectedPackage": zod.string().nullable()
-}),
-  "packages": zod.array(zod.object({
-  "id": zod.string(),
-  "name": zod.string(),
-  "price": zod.number(),
-  "description": zod.string(),
-  "features": zod.array(zod.string()),
-  "recommended": zod.boolean()
-})),
-  "milestones": zod.array(zod.object({
-  "id": zod.string(),
-  "name": zod.string(),
-  "date": zod.string(),
-  "status": zod.string()
-})),
-  "tasks": zod.array(zod.object({
-  "id": zod.string(),
-  "title": zod.string(),
-  "phase": zod.string(),
-  "status": zod.string(),
-  "dueDate": zod.string(),
-  "assignee": zod.string().optional()
-})),
-  "invoices": zod.array(zod.object({
-  "id": zod.string(),
-  "number": zod.string(),
-  "amount": zod.number(),
-  "dueDate": zod.string(),
-  "status": zod.string(),
-  "description": zod.string()
-})),
-  "activities": zod.array(zod.object({
-  "id": zod.string(),
-  "actor": zod.string(),
-  "action": zod.string(),
-  "time": zod.string(),
-  "type": zod.string()
-}))
-}))
-
+export const ApproveProposalResponse = zod
+  .object({
+    id: zod.string(),
+    clientName: zod.string(),
+    clientEmail: zod.string(),
+    name: zod.string(),
+    type: zod.string(),
+    status: zod.string(),
+    budget: zod.number(),
+    deadline: zod.string(),
+    progress: zod.number(),
+    accent: zod.string(),
+    initials: zod.string(),
+    shareToken: zod.string().optional(),
+  })
+  .and(
+    zod.object({
+      goals: zod.string(),
+      notes: zod.string(),
+      proposal: zod.object({
+        status: zod.string(),
+        headline: zod.string(),
+        body: zod.string(),
+        selectedPackage: zod.string().nullable(),
+      }),
+      packages: zod.array(
+        zod.object({
+          id: zod.string(),
+          name: zod.string(),
+          price: zod.number(),
+          description: zod.string(),
+          features: zod.array(zod.string()),
+          recommended: zod.boolean(),
+        }),
+      ),
+      milestones: zod.array(
+        zod.object({
+          id: zod.string(),
+          name: zod.string(),
+          date: zod.string(),
+          status: zod.string(),
+        }),
+      ),
+      tasks: zod.array(
+        zod.object({
+          id: zod.string(),
+          title: zod.string(),
+          phase: zod.string(),
+          status: zod.string(),
+          dueDate: zod.string(),
+          assignee: zod.string().optional(),
+        }),
+      ),
+      invoices: zod.array(
+        zod.object({
+          id: zod.string(),
+          number: zod.string(),
+          amount: zod.number(),
+          dueDate: zod.string(),
+          status: zod.string(),
+          description: zod.string(),
+        }),
+      ),
+      activities: zod.array(
+        zod.object({
+          id: zod.string(),
+          actor: zod.string(),
+          action: zod.string(),
+          time: zod.string(),
+          type: zod.string(),
+        }),
+      ),
+    }),
+  );
 
 /**
  * @summary Request proposal changes
  */
 export const RequestProposalChangesParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
 export const RequestProposalChangesBody = zod.object({
-  "packageId": zod.string().optional(),
-  "note": zod.string().optional()
-})
+  packageId: zod.string().optional(),
+  note: zod.string().optional(),
+});
 
-export const RequestProposalChangesResponse = zod.object({
-  "id": zod.string(),
-  "clientName": zod.string(),
-  "clientEmail": zod.string(),
-  "name": zod.string(),
-  "type": zod.string(),
-  "status": zod.string(),
-  "budget": zod.number(),
-  "deadline": zod.string(),
-  "progress": zod.number(),
-  "accent": zod.string(),
-  "initials": zod.string(),
-  "shareToken": zod.string().optional()
-}).and(zod.object({
-  "goals": zod.string(),
-  "notes": zod.string(),
-  "proposal": zod.object({
-  "status": zod.string(),
-  "headline": zod.string(),
-  "body": zod.string(),
-  "selectedPackage": zod.string().nullable()
-}),
-  "packages": zod.array(zod.object({
-  "id": zod.string(),
-  "name": zod.string(),
-  "price": zod.number(),
-  "description": zod.string(),
-  "features": zod.array(zod.string()),
-  "recommended": zod.boolean()
-})),
-  "milestones": zod.array(zod.object({
-  "id": zod.string(),
-  "name": zod.string(),
-  "date": zod.string(),
-  "status": zod.string()
-})),
-  "tasks": zod.array(zod.object({
-  "id": zod.string(),
-  "title": zod.string(),
-  "phase": zod.string(),
-  "status": zod.string(),
-  "dueDate": zod.string(),
-  "assignee": zod.string().optional()
-})),
-  "invoices": zod.array(zod.object({
-  "id": zod.string(),
-  "number": zod.string(),
-  "amount": zod.number(),
-  "dueDate": zod.string(),
-  "status": zod.string(),
-  "description": zod.string()
-})),
-  "activities": zod.array(zod.object({
-  "id": zod.string(),
-  "actor": zod.string(),
-  "action": zod.string(),
-  "time": zod.string(),
-  "type": zod.string()
-}))
-}))
-
+export const RequestProposalChangesResponse = zod
+  .object({
+    id: zod.string(),
+    clientName: zod.string(),
+    clientEmail: zod.string(),
+    name: zod.string(),
+    type: zod.string(),
+    status: zod.string(),
+    budget: zod.number(),
+    deadline: zod.string(),
+    progress: zod.number(),
+    accent: zod.string(),
+    initials: zod.string(),
+    shareToken: zod.string().optional(),
+  })
+  .and(
+    zod.object({
+      goals: zod.string(),
+      notes: zod.string(),
+      proposal: zod.object({
+        status: zod.string(),
+        headline: zod.string(),
+        body: zod.string(),
+        selectedPackage: zod.string().nullable(),
+      }),
+      packages: zod.array(
+        zod.object({
+          id: zod.string(),
+          name: zod.string(),
+          price: zod.number(),
+          description: zod.string(),
+          features: zod.array(zod.string()),
+          recommended: zod.boolean(),
+        }),
+      ),
+      milestones: zod.array(
+        zod.object({
+          id: zod.string(),
+          name: zod.string(),
+          date: zod.string(),
+          status: zod.string(),
+        }),
+      ),
+      tasks: zod.array(
+        zod.object({
+          id: zod.string(),
+          title: zod.string(),
+          phase: zod.string(),
+          status: zod.string(),
+          dueDate: zod.string(),
+          assignee: zod.string().optional(),
+        }),
+      ),
+      invoices: zod.array(
+        zod.object({
+          id: zod.string(),
+          number: zod.string(),
+          amount: zod.number(),
+          dueDate: zod.string(),
+          status: zod.string(),
+          description: zod.string(),
+        }),
+      ),
+      activities: zod.array(
+        zod.object({
+          id: zod.string(),
+          actor: zod.string(),
+          action: zod.string(),
+          time: zod.string(),
+          type: zod.string(),
+        }),
+      ),
+    }),
+  );
 
 /**
  * @summary Draft a proposal for a job posting from a URL or pasted description
  */
 export const GenerateJobProposalBody = zod.object({
-  "url": zod.string().optional(),
-  "description": zod.string().optional(),
-  "tone": zod.enum(['confident', 'consultative', 'warm']).optional(),
-  "length": zod.enum(['short', 'standard', 'detailed']).optional(),
-  "profile": zod.object({
-  "name": zod.string().optional(),
-  "studio": zod.string().optional(),
-  "email": zod.string().optional(),
-  "bio": zod.string().optional(),
-  "portfolio": zod.string().optional()
-}).optional()
-})
+  url: zod.string().optional(),
+  description: zod.string().optional(),
+  portfolioUrl: zod.string().optional(),
+  tone: zod.enum(["confident", "consultative", "warm"]).optional(),
+  length: zod.enum(["short", "standard", "detailed"]).optional(),
+  profile: zod
+    .object({
+      name: zod.string().optional(),
+      studio: zod.string().optional(),
+      email: zod.string().optional(),
+      bio: zod.string().optional(),
+      portfolio: zod.string().optional(),
+    })
+    .optional(),
+});
 
 export const GenerateJobProposalResponse = zod.object({
-  "proposal": zod.string(),
-  "source": zod.string(),
-  "needsDescription": zod.boolean().optional(),
-  "draft": zod.object({
-  "id": zod.string(),
-  "proposal": zod.string(),
-  "source": zod.string(),
-  "createdAt": zod.string(),
-  "title": zod.string().optional(),
-  "org": zod.string().optional(),
-  "url": zod.string().optional(),
-  "tone": zod.string().optional(),
-  "length": zod.string().optional()
-}).optional(),
-  "job": zod.object({
-  "title": zod.string().optional(),
-  "org": zod.string().optional(),
-  "url": zod.string().optional(),
-  "description": zod.string().optional(),
-  "employmentType": zod.string().optional()
-}).optional()
-})
-
+  proposal: zod.string(),
+  source: zod.string(),
+  needsDescription: zod.boolean().optional(),
+  draft: zod
+    .object({
+      id: zod.string(),
+      proposal: zod.string(),
+      source: zod.string(),
+      createdAt: zod.string(),
+      title: zod.string().optional(),
+      org: zod.string().optional(),
+      url: zod.string().optional(),
+      tone: zod.string().optional(),
+      length: zod.string().optional(),
+    })
+    .optional(),
+  job: zod
+    .object({
+      title: zod.string().optional(),
+      org: zod.string().optional(),
+      url: zod.string().optional(),
+      description: zod.string().optional(),
+      employmentType: zod.string().optional(),
+    })
+    .optional(),
+});
 
 /**
  * @summary List saved proposal drafts
  */
 export const GetJobProposalsResponseItem = zod.object({
-  "id": zod.string(),
-  "proposal": zod.string(),
-  "source": zod.string(),
-  "createdAt": zod.string(),
-  "title": zod.string().optional(),
-  "org": zod.string().optional(),
-  "url": zod.string().optional(),
-  "tone": zod.string().optional(),
-  "length": zod.string().optional()
-})
-export const GetJobProposalsResponse = zod.array(GetJobProposalsResponseItem)
-
+  id: zod.string(),
+  proposal: zod.string(),
+  source: zod.string(),
+  createdAt: zod.string(),
+  title: zod.string().optional(),
+  org: zod.string().optional(),
+  url: zod.string().optional(),
+  tone: zod.string().optional(),
+  length: zod.string().optional(),
+});
+export const GetJobProposalsResponse = zod.array(GetJobProposalsResponseItem);
 
 /**
  * @summary Delete a saved proposal draft
  */
 export const DeleteJobProposalParams = zod.object({
-  "id": zod.coerce.string()
-})
+  id: zod.coerce.string(),
+});
 
-export const DeleteJobProposalResponse = zod.void()
-
+export const DeleteJobProposalResponse = zod.void();
 
 /**
  * @summary Get client portal by share token
  */
 export const GetClientPortalParams = zod.object({
-  "token": zod.coerce.string()
-})
+  token: zod.coerce.string(),
+});
 
-export const GetClientPortalResponse = zod.object({
-  "id": zod.string(),
-  "clientName": zod.string(),
-  "clientEmail": zod.string(),
-  "name": zod.string(),
-  "type": zod.string(),
-  "status": zod.string(),
-  "budget": zod.number(),
-  "deadline": zod.string(),
-  "progress": zod.number(),
-  "accent": zod.string(),
-  "initials": zod.string(),
-  "shareToken": zod.string().optional()
-}).and(zod.object({
-  "goals": zod.string(),
-  "notes": zod.string(),
-  "proposal": zod.object({
-  "status": zod.string(),
-  "headline": zod.string(),
-  "body": zod.string(),
-  "selectedPackage": zod.string().nullable()
-}),
-  "packages": zod.array(zod.object({
-  "id": zod.string(),
-  "name": zod.string(),
-  "price": zod.number(),
-  "description": zod.string(),
-  "features": zod.array(zod.string()),
-  "recommended": zod.boolean()
-})),
-  "milestones": zod.array(zod.object({
-  "id": zod.string(),
-  "name": zod.string(),
-  "date": zod.string(),
-  "status": zod.string()
-})),
-  "tasks": zod.array(zod.object({
-  "id": zod.string(),
-  "title": zod.string(),
-  "phase": zod.string(),
-  "status": zod.string(),
-  "dueDate": zod.string(),
-  "assignee": zod.string().optional()
-})),
-  "invoices": zod.array(zod.object({
-  "id": zod.string(),
-  "number": zod.string(),
-  "amount": zod.number(),
-  "dueDate": zod.string(),
-  "status": zod.string(),
-  "description": zod.string()
-})),
-  "activities": zod.array(zod.object({
-  "id": zod.string(),
-  "actor": zod.string(),
-  "action": zod.string(),
-  "time": zod.string(),
-  "type": zod.string()
-}))
-}))
-
-
+export const GetClientPortalResponse = zod
+  .object({
+    id: zod.string(),
+    clientName: zod.string(),
+    clientEmail: zod.string(),
+    name: zod.string(),
+    type: zod.string(),
+    status: zod.string(),
+    budget: zod.number(),
+    deadline: zod.string(),
+    progress: zod.number(),
+    accent: zod.string(),
+    initials: zod.string(),
+    shareToken: zod.string().optional(),
+  })
+  .and(
+    zod.object({
+      goals: zod.string(),
+      notes: zod.string(),
+      proposal: zod.object({
+        status: zod.string(),
+        headline: zod.string(),
+        body: zod.string(),
+        selectedPackage: zod.string().nullable(),
+      }),
+      packages: zod.array(
+        zod.object({
+          id: zod.string(),
+          name: zod.string(),
+          price: zod.number(),
+          description: zod.string(),
+          features: zod.array(zod.string()),
+          recommended: zod.boolean(),
+        }),
+      ),
+      milestones: zod.array(
+        zod.object({
+          id: zod.string(),
+          name: zod.string(),
+          date: zod.string(),
+          status: zod.string(),
+        }),
+      ),
+      tasks: zod.array(
+        zod.object({
+          id: zod.string(),
+          title: zod.string(),
+          phase: zod.string(),
+          status: zod.string(),
+          dueDate: zod.string(),
+          assignee: zod.string().optional(),
+        }),
+      ),
+      invoices: zod.array(
+        zod.object({
+          id: zod.string(),
+          number: zod.string(),
+          amount: zod.number(),
+          dueDate: zod.string(),
+          status: zod.string(),
+          description: zod.string(),
+        }),
+      ),
+      activities: zod.array(
+        zod.object({
+          id: zod.string(),
+          actor: zod.string(),
+          action: zod.string(),
+          time: zod.string(),
+          type: zod.string(),
+        }),
+      ),
+    }),
+  );

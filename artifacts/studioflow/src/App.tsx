@@ -1,7 +1,7 @@
 import { ErrorBoundary } from "@/components/error-boundary";
-import { toast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { toast } from "@/hooks/use-toast";
 import NotFound from "@/pages/not-found";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type {
@@ -969,8 +969,8 @@ function WelcomePage() {
                       <h4>A warmer digital home for your daily ritual</h4>
                       <p>
                         Northstar has already built a beautiful product. This
-                        project gives that product a digital experience with
-                        the same care.
+                        project gives that product a digital experience with the
+                        same care.
                       </p>
                       <div className="preview-package-row">
                         <span>Starter</span>
@@ -978,13 +978,20 @@ function WelcomePage() {
                         <span>Signature</span>
                       </div>
                       <div className="preview-proposal-actions">
-                        <span><Copy size={10} /> Copy proposal</span>
-                        <span><ArrowUpRight size={10} /> Client portal</span>
+                        <span>
+                          <Copy size={10} /> Copy proposal
+                        </span>
+                        <span>
+                          <ArrowUpRight size={10} /> Client portal
+                        </span>
                       </div>
                     </div>
                   </div>
                   <div className="preview-writer-footer">
-                    <span><CheckCircle2 size={11} /> Proposal, packages, and next steps ready</span>
+                    <span>
+                      <CheckCircle2 size={11} /> Proposal, packages, and next
+                      steps ready
+                    </span>
                     <span>2 min ago</span>
                   </div>
                 </div>
@@ -2763,6 +2770,7 @@ function ProposalsPage() {
   const [tone, setTone] = useState<JobProposalInputTone>("confident");
   const [length, setLength] = useState<JobProposalInputLength>("standard");
   const [portfolio, setPortfolio] = useState("");
+  const [portfolioUrl, setPortfolioUrl] = useState("");
   const [showPortfolio, setShowPortfolio] = useState(false);
   const [job, setJob] = useState<JobProposal["job"]>(undefined);
   const [proposal, setProposal] = useState("");
@@ -2793,6 +2801,7 @@ function ProposalsPage() {
         data: {
           url: url.trim() || undefined,
           description: description.trim() || undefined,
+          portfolioUrl: portfolioUrl.trim() || undefined,
           tone,
           length,
           profile: {
@@ -2939,19 +2948,35 @@ function ProposalsPage() {
             />{" "}
             {showPortfolio
               ? "Hide portfolio context"
-              : "Add relevant work / portfolio"}
+              : "Add relevant work / portfolio (link or paste)"}
           </button>
           {showPortfolio && (
-            <label>
-              Relevant work
-              <textarea
-                data-testid="textarea-portfolio"
-                rows={4}
-                value={portfolio}
-                onChange={(e) => setPortfolio(e.target.value)}
-                placeholder="e.g. Wrote 30+ UGC ad scripts for a DTC skincare brand; hooks that lifted CTR 2.4×. Happy to share samples."
-              />
-            </label>
+            <>
+              <label>
+                Portfolio / Contra profile link
+                <input
+                  data-testid="input-portfolio-url"
+                  type="url"
+                  value={portfolioUrl}
+                  onChange={(e) => setPortfolioUrl(e.target.value)}
+                  placeholder="https://contra.com/your_username"
+                />
+              </label>
+              <p className="writer-hint">
+                <Sparkles size={14} /> We’ll read your work &amp; case studies
+                once and auto-pick the most relevant proof for this job.
+              </p>
+              <label>
+                Or paste relevant work
+                <textarea
+                  data-testid="textarea-portfolio"
+                  rows={4}
+                  value={portfolio}
+                  onChange={(e) => setPortfolio(e.target.value)}
+                  placeholder="e.g. Wrote 30+ UGC ad scripts for a DTC skincare brand; hooks that lifted CTR 2.4×. Happy to share samples."
+                />
+              </label>
+            </>
           )}
 
           {error && <p className="writer-error">{error}</p>}

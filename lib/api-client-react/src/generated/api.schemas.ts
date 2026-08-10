@@ -161,22 +161,22 @@ export interface InvoiceInput {
   number?: string;
 }
 
-export type JobProposalInputTone = typeof JobProposalInputTone[keyof typeof JobProposalInputTone];
-
+export type JobProposalInputTone =
+  (typeof JobProposalInputTone)[keyof typeof JobProposalInputTone];
 
 export const JobProposalInputTone = {
-  confident: 'confident',
-  consultative: 'consultative',
-  warm: 'warm',
+  confident: "confident",
+  consultative: "consultative",
+  warm: "warm",
 } as const;
 
-export type JobProposalInputLength = typeof JobProposalInputLength[keyof typeof JobProposalInputLength];
-
+export type JobProposalInputLength =
+  (typeof JobProposalInputLength)[keyof typeof JobProposalInputLength];
 
 export const JobProposalInputLength = {
-  short: 'short',
-  standard: 'standard',
-  detailed: 'detailed',
+  short: "short",
+  standard: "standard",
+  detailed: "detailed",
 } as const;
 
 export type JobProposalInputProfile = {
@@ -190,6 +190,7 @@ export type JobProposalInputProfile = {
 export interface JobProposalInput {
   url?: string;
   description?: string;
+  portfolioUrl?: string;
   tone?: JobProposalInputTone;
   length?: JobProposalInputLength;
   profile?: JobProposalInputProfile;
@@ -255,7 +256,6 @@ export interface Dashboard {
 }
 
 export type GetProjectsParams = {
-search?: string;
-status?: string;
+  search?: string;
+  status?: string;
 };
-

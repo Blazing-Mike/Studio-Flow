@@ -3039,6 +3039,14 @@ label select:focus {
   color: #9e743e;
   font-size: 11px;
 }
+.writer-hint {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 0 0;
+  color: #8e9994;
+  font-size: 11px;
+}
 .writer-error {
   color: #c0563f;
   font-size: 11px;

@@ -6,6 +6,11 @@ import {
 } from "@workspace/api-zod";
 import { Router, type IRouter } from "express";
 import {
+  fetchContraPortfolio,
+  formatPortfolioContext,
+  selectRelevantPortfolio,
+} from "../lib/contra-portfolio";
+import {
   fetchJobFromUrl,
   writeProposal,
   type JobInfo,
@@ -56,7 +61,7 @@ router.post("/job-proposals/generate", async (req, res) => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { url, description, tone, length, profile } = parsed.data;
+  const { url, description, tone, length, profile, portfolioUrl } = parsed.data;
   const userProfile: JobProfile = {
     name: profile?.name?.trim() || defaultProfile.name,
     studio: profile?.studio?.trim() || defaultProfile.studio,
@@ -93,7 +98,36 @@ router.post("/job-proposals/generate", async (req, res) => {
     return;
   }
 
-  // 2) Write the proposal and auto-save to history.
+  // 2) Auto-import portfolio proof from a Contra profile link (one-time fetch,
+  //    cached by username) and pick the most relevant highlights for THIS job.
+  let portfolioContext = userProfile.portfolio;
+  const profileUrl = portfolioUrl?.trim();
+  if (!portfolioContext && profileUrl) {
+    try {
+      const items = await fetchContraPortfolio(profileUrl);
+      const selected = await selectRelevantPortfolio(
+        {
+          title: job.title,
+          org: job.org,
+          employmentType: job.employmentType,
+          description: job.description,
+        },
+        items,
+        2,
+      );
+      if (selected.length) {
+        portfolioContext = formatPortfolioContext(selected);
+      }
+    } catch (error) {
+      console.warn(
+        "[job-proposals] portfolio import failed:",
+        error instanceof Error ? error.message : error,
+      );
+    }
+  }
+  userProfile.portfolio = portfolioContext;
+
+  // 3) Write the proposal and auto-save to history.
   const { proposal, source } = await writeProposal(job, userProfile, options);
   const draft: ProposalDraft = {
     id: `draft-${Date.now()}`,
