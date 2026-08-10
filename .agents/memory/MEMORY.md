@@ -1,1 +1,2 @@
 - [OpenAPI integer compatibility](openapi-zod-compatibility.md) — Keep generated numeric fields as `number` when the workspace Zod generator lacks `z.int()`.
+- [StudioFlow persistence design](studioflow-persistence.md) — Use JSONB project snapshots, a one-to-one proposal row, and upsert-based writes for the current API contract.

@@ -1,0 +1,53 @@
+Continue StudioFlow's Phase 1: add real database persistence. The project is a full-stack
+"studio client workspace" (Express 5 API + React/Vite client) currently on `main` @ commit 7f4aa49.
+
+STACK: pnpm workspace, TypeScript, Express 5, Drizzle ORM (postgres), Zod v4, Orval-generated
+API client/zod from lib/api-spec/openapi.yaml. AI features run through an OpenAI-compatible
+Gemini client (lib/llm.ts, lib/ai-generate.ts, lib/job-proposal.ts).
+
+CURRENT STATE (all working, but everything is in-memory):
+- API routes (artifacts/api-server/src/routes/studioflow.ts) read/write an in-memory
+  `projects` array seeded in artifacts/api-server/src/lib/studioflow-data.ts. Restart = data loss.
+- Proposal drafts/history are in-memory in artifacts/api-server/src/routes/job-proposals.ts.
+- A Drizzle + node-postgres scaffold ALREADY exists but the schema is EMPTY:
+  lib/db/src/index.ts exports `db` (drizzle(pool)) and `pool`; lib/db/src/schema/index.ts is empty.
+  lib/db/drizzle.config.ts requires process.env.DATABASE_URL (postgres).
+- `@workspace/db` is already a dependency of the api-server; `.replit` postMerge runs
+  `pnpm --filter db push`.
+
+YOUR TASK — make persistence real while keeping the exact same API contract:
+1. Define Drizzle schema in lib/db/src/schema/ (split into files) for: projects, proposal
+   (one-to-one), packages, milestones, tasks, invoices, activities, and job proposal drafts.
+   Match the shapes in lib/api-client-react/src/generated/api.schemas.ts (ProjectDetail,
+   Project, Task, Invoice, Milestone, Package, Activity, ProposalDraft) so response parsing
+   stays valid. Use jsonb for arrays like packages/tasks/milestones/invoices/activities if
+   simpler, or child tables — your call, but keep it pragmatic.
+2. Seed the 3 demo projects (Northstar/Meridian/Sundays from studioflow-data.ts, which use
+   `daysFromNow()` for relative dates) into the DB on startup when empty.
+3. Refactor routes to use the DB instead of the in-memory array, preserving every behavior:
+   dashboard (computed revenue/outstanding/upcoming/daysLeft), project CRUD + edit,
+   milestone create/edit/delete + filter, task & invoice add/edit/delete/status, proposal
+   edit, portal approve/request-changes, and POST /projects/:id/generate (AI plan persists).
+4. Persist job-proposal drafts (GET/POST/DELETE /api/job-proposals*) so history survives.
+5. Keep the API response shapes IDENTICAL — do NOT change openapi.yaml or the generated
+   client unless a shape is genuinely wrong. The React client should need zero changes.
+6. Keep the AI generator untouched in behavior (it already returns structured data that the
+   route merges into the project; just write the result to the DB).
+
+CONSTRAINTS / GOTCHAS:
+- DATABASE_URL must be provisioned and set in Replit Secrets (not .env-in-git). Run
+  `pnpm --filter db push` to apply schema (this also runs on Replit post-merge).
+- `@workspace/db` is a composite TS project referenced by api-server: after changing schema,
+  rebuild libs so declarations refresh (root `pnpm run typecheck:libs` or `tsc --build`).
+- In-memory `projects` array lives in studioflow-data.ts; migrate seed + helpers there, but
+  don't break the AI `createFromBrief` flow (it returns a full project object to persist).
+- Dashboard `daysLeft`/revenue etc. are computed in studioflow.ts dashboard(); recompute from
+  DB rows.
+- Typecheck all packages: `pnpm run typecheck` (or per-package tsc). Don't leave build errors.
+
+ACCEPTANCE CRITERIA (verify in browser against the running server):
+- Create a project, edit it, add a task/invoice/milestone, save a job proposal draft.
+- Restart the API server → everything persists (project, edits, drafts, approvals).
+- Dashboard + editing + AI generation + job proposal writer all still work exactly as before.
+- Fresh DB gets the 3 seeded demo projects with current-looking relative dates.
+Report back with: what schema you chose, files changed, and a restart-persistence proof.

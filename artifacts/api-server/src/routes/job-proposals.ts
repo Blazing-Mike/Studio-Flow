@@ -13,6 +13,11 @@ import {
   type ProposalLength,
   type ProposalTone,
 } from "../lib/job-proposal";
+import {
+  deleteJobProposalDraft,
+  listJobProposalDrafts,
+  saveJobProposalDraft,
+} from "../lib/studioflow-repository";
 
 const router: IRouter = Router();
 
@@ -34,9 +39,6 @@ type ProposalDraft = {
   tone?: string;
   length?: string;
 };
-
-// In-memory saved drafts (consistent with the rest of the API's in-memory store).
-const drafts: ProposalDraft[] = [];
 
 /**
  * POST /api/job-proposals/generate
@@ -104,7 +106,7 @@ router.post("/job-proposals/generate", async (req, res) => {
     tone: options.tone,
     length: options.length,
   };
-  if (proposal.trim()) drafts.unshift(draft);
+  if (proposal.trim()) await saveJobProposalDraft(draft);
 
   res.json(
     GenerateJobProposalResponse.parse({
@@ -121,24 +123,23 @@ router.post("/job-proposals/generate", async (req, res) => {
  * GET /api/job-proposals
  * List saved proposal drafts (newest first).
  */
-router.get("/job-proposals", (_req, res) => {
-  res.json(GetJobProposalsResponse.parse(drafts));
+router.get("/job-proposals", async (_req, res) => {
+  res.json(GetJobProposalsResponse.parse(await listJobProposalDrafts()));
 });
 
 /**
  * DELETE /api/job-proposals/:id
  * Delete a saved proposal draft.
  */
-router.delete("/job-proposals/:id", (req, res) => {
+router.delete("/job-proposals/:id", async (req, res) => {
   const params = DeleteJobProposalParams.safeParse(req.params);
-  const index = params.success
-    ? drafts.findIndex((d) => d.id === params.data.id)
-    : -1;
-  if (index === -1) {
+  const deleted = params.success
+    ? await deleteJobProposalDraft(params.data.id)
+    : false;
+  if (!deleted) {
     res.status(404).json({ error: "Draft not found" });
     return;
   }
-  drafts.splice(index, 1);
   res.status(204).send();
 });
 
