@@ -1,4 +1,5 @@
 import { ErrorBoundary } from "@/components/error-boundary";
+import { toast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
@@ -570,6 +571,7 @@ function AppShell({ children }: { children: ReactNode }) {
             <LogOut size={16} />
             <span>Sign out</span>
           </button>
+          <div className="demo-note">Demo workspace · sample data</div>
         </div>
       </aside>
       {mobileOpen && (
@@ -1759,6 +1761,12 @@ function OverviewTab({
               </>
             )}
           </button>
+          {generating && (
+            <p className="generate-note">
+              <Loader2 size={12} className="spin" /> Drafting your proposal,
+              packages, and timeline…
+            </p>
+          )}
         </section>
         <section className="panel mini-activity">
           <div className="panel-head">
@@ -2555,7 +2563,25 @@ function PortalPage() {
     const mutation = kind === "approve" ? approve : request;
     mutation.mutate(
       { id: project.id, data: { packageId: selected, note } },
-      { onSuccess: () => setDecision(kind), onError: () => setDecision(kind) },
+      {
+        onSuccess: () => {
+          setDecision(kind);
+          toast({
+            title:
+              kind === "approve" ? "Proposal approved" : "Changes requested",
+            description:
+              kind === "approve"
+                ? "The client confirmed the proposal. Kickoff is on."
+                : "The client sent notes back to the studio.",
+          });
+        },
+        onError: () => {
+          toast({
+            title: "Couldn’t send",
+            description: "Something went wrong. Please try again.",
+          });
+        },
+      },
     );
   };
   return (

@@ -983,6 +983,12 @@ a {
 .sidebar-bottom .sidebar-label {
   margin-top: 0;
 }
+.demo-note {
+  margin-top: 12px;
+  text-align: center;
+  color: #8c9996;
+  font: 9px var(--app-font-mono);
+}
 .studio-card {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1704,6 +1710,15 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  font: 10px var(--app-font-mono);
+}
+.generate-note {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0 0;
+  color: #826e56;
   font: 10px var(--app-font-mono);
 }
 .brief-form {
@@ -3107,9 +3122,26 @@ label select:focus {
     font-size: 31px;
   }
   .workspace-actions {
-    position: absolute;
-    top: 74px;
-    right: 17px;
+    position: static;
+    width: 100%;
+    justify-content: flex-end;
+    padding-bottom: 0;
+  }
+  .writer-tune {
+    grid-template-columns: 1fr;
+  }
+  .history-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .history-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .proposal-text {
+    font-size: 11px;
+    line-height: 1.65;
   }
   .workspace-meta {
     margin-left: 0;
