@@ -1133,7 +1133,8 @@ a {
   text-decoration: none;
 }
 .app-shell {
-  min-height: 100dvh;
+  height: 100dvh;
+  overflow-y: auto;
   display: flex;
   color: var(--ink);
 }
@@ -1142,13 +1143,14 @@ a {
   color: hsl(var(--sidebar-foreground));
   width: 236px;
   flex: 0 0 236px;
-  min-height: 100dvh;
+  height: 100dvh;
   padding: 28px 16px 18px;
   display: flex;
   flex-direction: column;
   position: sticky;
   top: 0;
   z-index: 20;
+  overflow: hidden;
 }
 .brand {
   display: flex;
@@ -3083,6 +3085,7 @@ label select:focus {
   align-items: center;
   gap: 4px;
   margin-top: 8px;
+  margin-left: 10px;
 }
 .proposal-result {
   padding: 27px 30px;
