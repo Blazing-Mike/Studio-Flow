@@ -1,8 +1,6 @@
 import {
-  DeleteJobProposalParams,
   GenerateJobProposalBody,
   GenerateJobProposalResponse,
-  GetJobProposalsResponse,
 } from "@workspace/api-zod";
 import { Router, type IRouter } from "express";
 import {
@@ -18,11 +16,6 @@ import {
   type ProposalLength,
   type ProposalTone,
 } from "../lib/job-proposal";
-import {
-  deleteJobProposalDraft,
-  listJobProposalDrafts,
-  saveJobProposalDraft,
-} from "../lib/studioflow-repository";
 
 const router: IRouter = Router();
 
@@ -127,7 +120,9 @@ router.post("/job-proposals/generate", async (req, res) => {
   }
   userProfile.portfolio = portfolioContext;
 
-  // 3) Write the proposal and auto-save to history.
+  // 3) Write the proposal. The draft is returned to the client, which keeps it
+  //    in browser storage — nothing is persisted server-side (the API has no
+  //    auth, so server-side drafts would be visible to every visitor).
   const { proposal, source } = await writeProposal(job, userProfile, options);
   const draft: ProposalDraft = {
     id: `draft-${Date.now()}`,
@@ -140,7 +135,6 @@ router.post("/job-proposals/generate", async (req, res) => {
     tone: options.tone,
     length: options.length,
   };
-  if (proposal.trim()) await saveJobProposalDraft(draft);
 
   res.json(
     GenerateJobProposalResponse.parse({
@@ -151,30 +145,6 @@ router.post("/job-proposals/generate", async (req, res) => {
       job,
     }),
   );
-});
-
-/**
- * GET /api/job-proposals
- * List saved proposal drafts (newest first).
- */
-router.get("/job-proposals", async (_req, res) => {
-  res.json(GetJobProposalsResponse.parse(await listJobProposalDrafts()));
-});
-
-/**
- * DELETE /api/job-proposals/:id
- * Delete a saved proposal draft.
- */
-router.delete("/job-proposals/:id", async (req, res) => {
-  const params = DeleteJobProposalParams.safeParse(req.params);
-  const deleted = params.success
-    ? await deleteJobProposalDraft(params.data.id)
-    : false;
-  if (!deleted) {
-    res.status(404).json({ error: "Draft not found" });
-    return;
-  }
-  res.status(204).send();
 });
 
 export default router;

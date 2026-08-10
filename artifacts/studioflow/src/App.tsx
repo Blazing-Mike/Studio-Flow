@@ -25,7 +25,6 @@ import type {
 } from "@workspace/api-client-react";
 import {
   getGetClientPortalQueryKey,
-  getGetJobProposalsQueryKey,
   getGetProjectQueryKey,
   getGetProjectsQueryKey,
   useApproveProposal,
@@ -35,14 +34,12 @@ import {
   useCreateProject,
   useCreateTask,
   useDeleteInvoice,
-  useDeleteJobProposal,
   useDeleteMilestone,
   useDeleteTask,
   useGenerateJobProposal,
   useGenerateProjectPlan,
   useGetClientPortal,
   useGetDashboard,
-  useGetJobProposals,
   useGetProject,
   useGetProjects,
   useRequestProposalChanges,
@@ -2760,11 +2757,31 @@ function PortalPage() {
   );
 }
 
+const PROPOSAL_DRAFTS_KEY = "studioflow-proposal-drafts";
+
+function loadLocalDrafts(): ProposalDraft[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = window.localStorage.getItem(PROPOSAL_DRAFTS_KEY);
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalDrafts(drafts: ProposalDraft[]) {
+  try {
+    window.localStorage.setItem(PROPOSAL_DRAFTS_KEY, JSON.stringify(drafts));
+  } catch {
+    /* ignore quota / storage errors */
+  }
+}
+
 function ProposalsPage() {
   const write = useGenerateJobProposal();
-  const history = useGetJobProposals();
-  const removeDraft = useDeleteJobProposal();
   const profile = useStudioProfile();
+  const [drafts, setDrafts] = useState<ProposalDraft[]>(loadLocalDrafts);
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
   const [tone, setTone] = useState<JobProposalInputTone>("confident");
@@ -2779,9 +2796,6 @@ function ProposalsPage() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const loading = write.isPending;
-  const drafts = history.data ?? [];
-  const refreshHistory = () =>
-    queryClient.invalidateQueries({ queryKey: getGetJobProposalsQueryKey() });
 
   const applyDraft = (draft: ProposalDraft) => {
     setProposal(draft.proposal);
@@ -2821,7 +2835,14 @@ function ProposalsPage() {
           setNeedsDescription(Boolean(data.needsDescription));
           if (data.job?.description && !description.trim())
             setDescription(data.job.description);
-          if (data.draft) refreshHistory();
+          if (data.draft) {
+            const draft = data.draft;
+            setDrafts((prev) => {
+              const next = [draft, ...prev];
+              saveLocalDrafts(next);
+              return next;
+            });
+          }
         },
         onError: () => {
           setError(
@@ -2833,7 +2854,11 @@ function ProposalsPage() {
   };
 
   const remove = (id: string) =>
-    removeDraft.mutate({ id }, { onSuccess: refreshHistory });
+    setDrafts((prev) => {
+      const next = prev.filter((d) => d.id !== id);
+      saveLocalDrafts(next);
+      return next;
+    });
   const copy = () => {
     navigator.clipboard?.writeText(proposal);
     setCopied(true);

@@ -735,31 +735,6 @@ export const GenerateJobProposalResponse = zod.object({
 });
 
 /**
- * @summary List saved proposal drafts
- */
-export const GetJobProposalsResponseItem = zod.object({
-  id: zod.string(),
-  proposal: zod.string(),
-  source: zod.string(),
-  createdAt: zod.string(),
-  title: zod.string().optional(),
-  org: zod.string().optional(),
-  url: zod.string().optional(),
-  tone: zod.string().optional(),
-  length: zod.string().optional(),
-});
-export const GetJobProposalsResponse = zod.array(GetJobProposalsResponseItem);
-
-/**
- * @summary Delete a saved proposal draft
- */
-export const DeleteJobProposalParams = zod.object({
-  id: zod.coerce.string(),
-});
-
-export const DeleteJobProposalResponse = zod.void();
-
-/**
  * @summary Get client portal by share token
  */
 export const GetClientPortalParams = zod.object({

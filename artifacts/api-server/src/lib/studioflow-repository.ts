@@ -1,10 +1,4 @@
-import {
-  db,
-  studioflowJobProposalDrafts,
-  studioflowProjects,
-  studioflowProposals,
-  type StudioflowJobProposalDraftRow,
-} from "@workspace/db";
+import { db, studioflowProjects, studioflowProposals } from "@workspace/db";
 import { asc, eq, type SQL } from "drizzle-orm";
 import {
   projects as seedProjects,
@@ -181,58 +175,4 @@ export async function archiveProject(project: StudioProject) {
     .update(studioflowProjects)
     .set({ status: "Archived" })
     .where(eq(studioflowProjects.id, project.id));
-}
-
-function draftFromRow(row: StudioflowJobProposalDraftRow) {
-  return {
-    id: row.id,
-    proposal: row.proposal,
-    source: row.source,
-    createdAt: row.createdAt,
-    ...(row.title ? { title: row.title } : {}),
-    ...(row.org ? { org: row.org } : {}),
-    ...(row.url ? { url: row.url } : {}),
-    ...(row.tone ? { tone: row.tone } : {}),
-    ...(row.length ? { length: row.length } : {}),
-  };
-}
-
-export async function listJobProposalDrafts() {
-  const rows = await db
-    .select()
-    .from(studioflowJobProposalDrafts)
-    .orderBy(asc(studioflowJobProposalDrafts.createdAt));
-  return rows.reverse().map(draftFromRow);
-}
-
-export async function saveJobProposalDraft(draft: {
-  id: string;
-  proposal: string;
-  source: string;
-  createdAt: string;
-  title?: string;
-  org?: string;
-  url?: string;
-  tone?: string;
-  length?: string;
-}) {
-  await db.insert(studioflowJobProposalDrafts).values({
-    id: draft.id,
-    proposal: draft.proposal,
-    source: draft.source,
-    createdAt: draft.createdAt,
-    title: draft.title,
-    org: draft.org,
-    url: draft.url,
-    tone: draft.tone,
-    length: draft.length,
-  });
-}
-
-export async function deleteJobProposalDraft(id: string) {
-  const deleted = await db
-    .delete(studioflowJobProposalDrafts)
-    .where(eq(studioflowJobProposalDrafts.id, id))
-    .returning({ id: studioflowJobProposalDrafts.id });
-  return deleted.length > 0;
 }
