@@ -1,5 +1,7 @@
 import { fetchHtml, isSafeUrl, stripHtml } from "./job-proposal";
-import { chatCompletion } from "./llm";
+import { generateText, Output } from "ai";
+import { z } from "zod";
+import { llmConfigured, llmModel } from "./llm";
 
 /**
  * Contra profile → portfolio ingestion + relevance selection.
@@ -318,28 +320,6 @@ const STOPWORDS = new Set(
   ),
 );
 
-/** Parse a `{"ids":[...]}` LLM response defensively. */
-function parseSelectedIds(content: string): number[] {
-  const json = content.replace(/```json|```/g, "").trim();
-  try {
-    const obj = JSON.parse(json);
-    const arr = Array.isArray(obj) ? obj : obj?.ids;
-    if (Array.isArray(arr)) {
-      return arr
-        .map((n) => Number(n))
-        .filter((n) => Number.isInteger(n) && n > 0);
-    }
-  } catch {
-    /* fall through to regex */
-  }
-  const m = content.match(/\[([0-9,\s]+)\]/);
-  return m
-    ? m[1]
-        .split(",")
-        .map((s) => Number(s.trim()))
-        .filter((n) => n > 0)
-    : [];
-}
 
 /** LLM-based relevance selection — the primary path (handles arbitrary domains). */
 async function rankByLlm(
@@ -383,19 +363,35 @@ ${listText}
 
 Pick up to ${limit} item number(s).`;
 
-  const content = await chatCompletion(
-    [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ],
-    { temperature: 0, maxTokens: 120, json: true },
-  );
-  if (!content) return [];
-  const ids = parseSelectedIds(content);
-  return ids
-    .map((n) => items[n - 1])
-    .filter((it): it is PortfolioItem => it !== undefined)
-    .slice(0, limit);
+  if (!llmConfigured()) return [];
+  try {
+    const result = await generateText({
+      model: llmModel(),
+      instructions: system,
+      prompt: user,
+      temperature: 0,
+      maxOutputTokens: 120,
+      timeout: 30000,
+      output: Output.object({
+        schema: z.object({
+          ids: z.array(z.union([z.number(), z.string()])),
+        }),
+      }),
+    });
+    const ids = result.output.ids
+      .map((n) => Number(n))
+      .filter((n) => Number.isInteger(n) && n > 0);
+    return ids
+      .map((n) => items[n - 1])
+      .filter((it): it is PortfolioItem => it !== undefined)
+      .slice(0, limit);
+  } catch (error) {
+    console.error(
+      "[contra-portfolio] LLM ranking failed, using keyword fallback:",
+      error instanceof Error ? error.message : error,
+    );
+    return [];
+  }
 }
 
 /** Keyword-overlap fallback (used only when the LLM call itself fails). */

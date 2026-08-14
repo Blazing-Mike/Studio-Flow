@@ -3546,3 +3546,47 @@ label select:focus {
     width: 100%;
   }
 }
+
+/* Accessibility: visible keyboard focus (WCAG 2.4.7). */
+:focus-visible {
+  outline: 2px solid var(--accent, #d7a356);
+  outline-offset: 2px;
+}
+
+/* Skip-to-content link: visually hidden until keyboard focus. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 0 0 8px 0;
+  background: var(--ink, #20373b);
+  color: #fff;
+  font-size: 14px;
+  text-decoration: none;
+}
+.skip-link:focus-visible {
+  left: 0;
+}
+
+/* Route-level chunk loader (shown while a page module is lazy-loaded). */
+.page-loader {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--ink, #20373b);
+}
+.page-loader .brand-mark {
+  margin-bottom: 4px;
+}
+.page-loader span {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.page-loader span span {
+  color: var(--accent, #d7a356);
+}

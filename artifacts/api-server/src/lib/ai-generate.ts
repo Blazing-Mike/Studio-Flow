@@ -1,12 +1,23 @@
-import { chatCompletion, llmConfigured } from "./llm";
+import {
+  generateText,
+  NoObjectGeneratedError,
+  Output,
+  streamText,
+} from "ai";
+import { z } from "zod";
+import { llmConfigured, llmModel } from "./llm";
 import type { StudioProject } from "./studioflow-data";
 
 /**
  * AI-assisted project plan generation.
  *
- * Uses the shared OpenAI-compatible chat client (lib/llm.ts). If no API key is
- * configured, or a call fails, callers fall back to the local mock generator in
- * studioflow-data.ts.
+ * Built on the Vercel AI SDK: `generateText` with `Output.object` and a Zod
+ * schema gets validated JSON back directly (no manual JSON extraction). The
+ * schema stays tolerant of model drift — in `json_object` mode the wire
+ * format doesn't carry the schema, so the model is guided by the prompt's
+ * explicit shape and `normalizePlan` applies the domain rules on top. If no
+ * API key is configured, or a call fails, callers fall back to the local mock
+ * generator in studioflow-data.ts.
  */
 
 export type Brief = {
@@ -33,7 +44,55 @@ export type GeneratedPlan = {
 
 export const aiConfigured = llmConfigured;
 
-const SYSTEM_PROMPT = `You are StudioFlow, a planning engine for independent creative studios. Given a client brief, you produce a complete project plan as a single JSON object. Output ONLY valid JSON — no markdown fences, no commentary.
+const planSchema = z.object({
+  proposal: z.object({
+    headline: z.string(),
+    body: z.string(),
+    selectedPackage: z.string(),
+  }),
+  packages: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        price: z.union([z.number(), z.string()]),
+        description: z.string().optional(),
+        features: z.array(z.string()).optional(),
+        recommended: z.boolean().optional(),
+      }),
+    )
+    .min(3)
+    .max(4),
+  milestones: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string().optional(),
+        title: z.string().optional(),
+        date: z.string(),
+        status: z.string().optional(),
+      }),
+    )
+    .min(1)
+    .max(8),
+  tasks: z
+    .array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        phase: z.string().optional(),
+        status: z.string().optional(),
+        dueDate: z.string().optional(),
+        assignee: z.string().optional(),
+      }),
+    )
+    .min(1)
+    .max(12),
+});
+
+type PlanObject = z.infer<typeof planSchema>;
+
+const SYSTEM_PROMPT = `You are StudioFlow, a planning engine for independent creative studios. Given a client brief, you produce a complete project plan as a single JSON object.
 
 The JSON must match exactly this shape:
 {
@@ -65,35 +124,6 @@ ${JSON.stringify({ ...brief, startDate: today }, null, 2)}
 Today's date is ${today}. Produce the project plan JSON now.`;
 }
 
-/** Extract the first balanced JSON object from model output (robust to stray prose). */
-function extractJson(text: string): unknown {
-  const trimmed = text.trim();
-  const fence = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  const candidate = fence ? fence[1].trim() : trimmed;
-  const start = candidate.indexOf("{");
-  const end = candidate.lastIndexOf("}");
-  if (start === -1 || end === -1 || end <= start) {
-    throw new Error("No JSON object found in model output");
-  }
-  return JSON.parse(candidate.slice(start, end + 1));
-}
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-function asString(value: unknown, fallback = ""): string {
-  return typeof value === "string" && value.trim() ? value.trim() : fallback;
-}
-
-function asNumber(value: unknown, fallback = 0): number {
-  const n = typeof value === "number" ? value : Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-function asBool(value: unknown, fallback = false): boolean {
-  return typeof value === "boolean" ? value : fallback;
-}
-
 function slug(value: string): string {
   return (
     value
@@ -103,97 +133,59 @@ function slug(value: string): string {
   );
 }
 
-const TASK_STATUSES = ["To Do", "In Progress", "Review", "Done"] as const;
-const MILESTONE_STATUSES = ["upcoming", "current", "complete"] as const;
+const TASK_STATUSES = ["To Do", "In Progress", "Review", "Done"];
+const MILESTONE_STATUSES = ["upcoming", "current", "complete"];
 
-/** Validate and normalize raw model output into a safe GeneratedPlan. Throws if unusable. */
-function normalizePlan(raw: unknown): GeneratedPlan {
-  if (!isRecord(raw)) throw new Error("Plan is not an object");
-  const proposalRaw = raw["proposal"];
-  const packagesRaw = raw["packages"];
-  const milestonesRaw = raw["milestones"];
-  const tasksRaw = raw["tasks"];
+function asNumber(value: number | string, fallback = 0): number {
+  const n = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
 
-  if (!isRecord(proposalRaw)) throw new Error("Proposal missing");
-  if (!Array.isArray(packagesRaw) || packagesRaw.length < 3)
-    throw new Error("Packages missing");
-  if (!Array.isArray(milestonesRaw) || milestonesRaw.length < 1)
-    throw new Error("Milestones missing");
-  if (!Array.isArray(tasksRaw) || tasksRaw.length < 1)
-    throw new Error("Tasks missing");
-
-  const headline = asString(proposalRaw["headline"]);
-  const body = asString(proposalRaw["body"]);
-  if (!headline || !body) throw new Error("Proposal text missing");
-
-  const packages = packagesRaw.slice(0, 4).map((p) => {
-    const rec = isRecord(p) ? p : {};
-    const id = asString(rec["id"], slug(asString(rec["name"])));
-    return {
-      id,
-      name: asString(rec["name"], id),
-      price: asNumber(rec["price"], 0),
-      description: asString(rec["description"]),
-      features: Array.isArray(rec["features"])
-        ? rec["features"]
-            .map((f) => asString(f))
-            .filter(Boolean)
-            .slice(0, 8)
-        : [],
-      recommended: asBool(rec["recommended"]),
-    };
-  });
-  const recommendedIds = packages.filter((p) => p.recommended).map((p) => p.id);
-  if (recommendedIds.length === 0)
-    packages[Math.min(1, packages.length - 1)] = {
-      ...packages[Math.min(1, packages.length - 1)],
-      recommended: true,
-    };
-
-  const milestones = milestonesRaw
-    .slice(0, 8)
-    .map((m) => {
-      const rec = isRecord(m) ? m : {};
-      const name = asString(rec["name"]);
-      const status = asString(rec["status"]).toLowerCase();
-      return {
-        id: asString(rec["id"], slug(name)),
-        name,
-        date: asString(rec["date"]).slice(0, 10),
-        status: (MILESTONE_STATUSES as readonly string[]).includes(status)
-          ? status
-          : "upcoming",
-      };
-    })
+/** Domain-level cleanup on top of schema validation. */
+function normalizePlan(plan: PlanObject): GeneratedPlan {
+  const packages = plan.packages.map((p) => ({
+    id: p.id.trim() || slug(p.name),
+    name: p.name.trim(),
+    price: asNumber(p.price),
+    description: (p.description ?? "").trim(),
+    features: (p.features ?? []).map((f) => f.trim()).filter(Boolean),
+    recommended: p.recommended ?? false,
+  }));
+  const recommendedIds = packages
+    .filter((p) => p.recommended)
+    .map((p) => p.id);
+  if (recommendedIds.length === 0) {
+    const index = Math.min(1, packages.length - 1);
+    packages[index] = { ...packages[index], recommended: true };
+  }
+  const selectedPackage = plan.proposal.selectedPackage;
+  const milestones = plan.milestones
+    .map((m) => ({
+      id: m.id.trim() || slug(m.name ?? m.title ?? ""),
+      name: (m.name ?? m.title ?? "").trim(),
+      date: m.date.slice(0, 10),
+      status: MILESTONE_STATUSES.includes((m.status ?? "").toLowerCase())
+        ? (m.status as string).toLowerCase()
+        : "upcoming",
+    }))
     .filter((m) => m.name);
-
-  const tasks = tasksRaw
-    .slice(0, 12)
-    .map((t) => {
-      const rec = isRecord(t) ? t : {};
-      const title = asString(rec["title"]);
-      const status = asString(rec["status"]);
-      return {
-        id: asString(rec["id"], slug(title)),
-        title,
-        phase: asString(rec["phase"], "Production"),
-        status: (TASK_STATUSES as readonly string[]).includes(status)
-          ? status
-          : "To Do",
-        dueDate: asString(rec["dueDate"]).slice(0, 10),
-        assignee: asString(rec["assignee"], "You"),
-      };
-    })
+  const tasks = plan.tasks
+    .map((t) => ({
+      id: t.id.trim() || slug(t.title),
+      title: t.title.trim(),
+      phase: (t.phase ?? "Production").trim(),
+      status: TASK_STATUSES.includes(t.status ?? "") ? (t.status as string) : "To Do",
+      dueDate: (t.dueDate ?? "").slice(0, 10),
+      assignee: (t.assignee ?? "You").trim(),
+    }))
     .filter((t) => t.title);
-
   if (milestones.length === 0) throw new Error("No milestones");
   if (tasks.length === 0) throw new Error("No tasks");
 
-  const selectedPackage = asString(proposalRaw["selectedPackage"]);
   return {
     proposal: {
-      headline,
-      body,
+      headline: plan.proposal.headline,
+      body: plan.proposal.body,
       selectedPackage: packages.some((p) => p.id === selectedPackage)
         ? selectedPackage
         : (recommendedIds[0] ?? packages[0].id),
@@ -214,18 +206,77 @@ export async function generatePlan(
   if (!aiConfigured()) return null;
 
   try {
-    const content = await chatCompletion(
-      [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: buildUserPrompt(brief) },
-      ],
-      { temperature: 0.7, json: true },
-    );
-    if (!content) return null;
-    return normalizePlan(extractJson(content));
+    const result = await generateText({
+      model: llmModel(),
+      instructions: SYSTEM_PROMPT,
+      prompt: buildUserPrompt(brief),
+      temperature: 0.7,
+      maxOutputTokens: 4096,
+      timeout: 60000,
+      output: Output.object({ schema: planSchema }),
+    });
+    return normalizePlan(result.output);
   } catch (error) {
+    const rawText =
+      error instanceof NoObjectGeneratedError ? error.text : undefined;
     console.error(
       "[ai-generate] generation failed, falling back to mock:",
+      error instanceof Error ? error.message : error,
+      rawText ? `\nmodel text: ${rawText.slice(0, 1200)}` : "",
+    );
+    return null;
+  }
+}
+
+export type PlanPhase =
+  | "proposal"
+  | "packages"
+  | "milestones"
+  | "tasks"
+  | "done";
+
+/**
+ * Stream a project plan from a brief, reporting each completed section via
+ * `onProgress` as the model writes it. Returns the validated plan, or null on
+ * failure/not-configured so the caller can keep the existing plan.
+ */
+export async function streamPlan(
+  brief: Brief,
+  onProgress: (phase: PlanPhase) => void,
+): Promise<GeneratedPlan | null> {
+  if (!aiConfigured()) return null;
+
+  const result = streamText({
+    model: llmModel(),
+    instructions: SYSTEM_PROMPT,
+    prompt: buildUserPrompt(brief),
+    temperature: 0.7,
+    maxOutputTokens: 4096,
+    timeout: 60000,
+    output: Output.object({ schema: planSchema }),
+  });
+
+  try {
+    let phase: PlanPhase = "proposal";
+    for await (const partial of result.partialOutputStream) {
+      const next: PlanPhase = partial.tasks?.length
+        ? "tasks"
+        : partial.milestones?.length
+          ? "milestones"
+          : partial.packages?.length
+            ? "packages"
+            : "proposal";
+      if (next !== phase) {
+        phase = next;
+        onProgress(next);
+      }
+    }
+    const plan = normalizePlan(await result.output);
+    onProgress("done");
+    return plan;
+  } catch (error) {
+    console.error(
+      "[ai-generate] streaming generation failed:",
       error instanceof Error ? error.message : error,
     );
     return null;

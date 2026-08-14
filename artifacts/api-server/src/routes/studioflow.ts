@@ -19,7 +19,7 @@ import {
   UpdateTaskBody,
 } from "@workspace/api-zod";
 import { Router, type IRouter } from "express";
-import { generatePlan } from "../lib/ai-generate";
+import { generatePlan, streamPlan, type Brief } from "../lib/ai-generate";
 import { createFromBrief, detail, type StudioProject } from "../lib/studioflow-data";
 import {
   archiveProject,
@@ -221,6 +221,66 @@ router.post("/projects/:id/generate", async (req, res) => {
   found.progress = Math.max(found.progress, 8);
   await saveProject(found);
   res.json(GetProjectResponse.parse(found));
+});
+
+/**
+ * POST /api/projects/:id/generate/stream
+ * Stream the AI project-plan generation as Server-Sent Events, so the client
+ * can show live progress while the model writes each section.
+ *
+ * Events (JSON in each `data:` line):
+ *   { "type": "progress", "phase": "proposal" | "packages" | "milestones" | "tasks" | "done" }
+ *   { "type": "result", "project": ProjectDetail }  — plan saved; refresh client data
+ *   { "type": "error", "message": string }
+ */
+router.post("/projects/:id/generate/stream", async (req, res) => {
+  const found = await getProject(String(req.params.id));
+  if (!found) {
+    res.status(404).json({ error: "Project not found" });
+    return;
+  }
+  const brief: Brief = {
+    clientName: found.clientName,
+    clientEmail: found.clientEmail,
+    name: found.name,
+    type: found.type,
+    goals: found.goals,
+    budget: found.budget,
+    deadline: found.deadline,
+    notes: found.notes,
+  };
+
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache, no-transform",
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no",
+  });
+  const send = (event: object) => res.write(`data: ${JSON.stringify(event)}\n\n`);
+
+  const generated = await streamPlan(brief, (phase) =>
+    send({ type: "progress", phase }),
+  );
+  if (generated) {
+    found.proposal = { status: "Sent", ...generated.proposal };
+    found.packages = generated.packages;
+    found.milestones = generated.milestones;
+    found.tasks = generated.tasks;
+  }
+  found.status = "Proposal sent";
+  found.proposal.status = "Sent";
+  found.progress = Math.max(found.progress, 8);
+  try {
+    await saveProject(found);
+    send({ type: "result", project: found });
+  } catch (error) {
+    console.error("[studioflow] save after generate failed:", error);
+    send({
+      type: "error",
+      message: "The plan was generated but couldn't be saved.",
+    });
+  }
+  res.end();
 });
 
 router.patch("/projects/:id/proposal", async (req, res) => {

@@ -19,7 +19,7 @@ Built for the **Replit × Contra** hackathon.
 - **API:** Express 5, Zod v4, Drizzle ORM (PostgreSQL), esbuild
 - **Client:** React + Vite, TanStack Query, Wouter, shadcn-style UI
 - **Codegen:** OpenAPI → Orval (React Query hooks + Zod schemas)
-- **AI:** OpenAI-compatible chat client (Gemini by default; swap to DeepSeek/OpenAI via env)
+- **AI:** Vercel AI SDK v7 with an OpenAI-compatible provider (Gemini by default; swap to DeepSeek/OpenAI via env); `generateText` for proposals, `Output.object` + Zod for structured plans
 
 ## 📁 Layout
 

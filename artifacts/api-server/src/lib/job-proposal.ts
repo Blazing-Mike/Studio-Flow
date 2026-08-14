@@ -1,6 +1,7 @@
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
-import { chatCompletion } from "./llm";
+import { generateText } from "ai";
+import { llmConfigured, llmModel } from "./llm";
 
 /**
  * Reads a job posting from a URL and drafts a tailored proposal the freelancer
@@ -353,16 +354,26 @@ export async function writeProposal(
 ): Promise<{ proposal: string; source: "ai" | "template" }> {
   const tone = options.tone ?? "confident";
   const length = options.length ?? "standard";
-  const content = await chatCompletion(
-    [
-      { role: "system", content: buildSystemPrompt(tone, length) },
-      { role: "user", content: buildUserPrompt(job, profile) },
-    ],
-    { temperature: 0.7, maxTokens: 1200 },
-  );
-
-  if (content && content.trim().length > 40) {
-    return { proposal: content.trim(), source: "ai" };
+  if (!llmConfigured()) {
+    return { proposal: templateProposal(job, profile), source: "template" };
+  }
+  try {
+    const { text } = await generateText({
+      model: llmModel(),
+      instructions: buildSystemPrompt(tone, length),
+      prompt: buildUserPrompt(job, profile),
+      temperature: 0.7,
+      maxOutputTokens: 1200,
+      timeout: 30000,
+    });
+    if (text && text.trim().length > 40) {
+      return { proposal: text.trim(), source: "ai" };
+    }
+  } catch (error) {
+    console.error(
+      "[job-proposal] generation failed, using template:",
+      error instanceof Error ? error.message : error,
+    );
   }
   return { proposal: templateProposal(job, profile), source: "template" };
 }
